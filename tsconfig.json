@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"target": "ES2020",
+		"sourceMap": true,
+		"strict": true,
+		"noImplicitReturns": true,
+		"downlevelIteration": true,
+		"module": "commonjs",
+		"jsx": "react"
+	},
+	"include": [
+		"client/*",
+		"client/**/*"
+	]
+}

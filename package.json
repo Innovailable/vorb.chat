@@ -1,0 +1,59 @@
+{
+  "name": "uwp-2",
+  "version": "0.2.0",
+  "description": "Universal WebRTC Project",
+  "private": true,
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/innovailable/uwp-2.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/innovailable/uwp-2/issues"
+  },
+  "homepage": "https://gitlab.com/innovailable/uwp-2#README",
+  "devDependencies": {
+    "@babel/core": "^7.8.7",
+    "@babel/preset-env": "^7.8.7",
+    "autoprefixer": "^9.7.4",
+    "babel-loader": "^8.0.6",
+    "css-loader": "^3.4.2",
+    "node-sass": "^4.13.1",
+    "postcss-loader": "^3.0.0",
+    "precss": "^4.0.0",
+    "sass-loader": "^8.0.2",
+    "style-loader": "^1.1.3",
+    "ts-loader": "^6.2.1",
+    "ts-node": "^8.7.0",
+    "tslint": "^6.1.0",
+    "typescript": "^3.8.3",
+    "webpack": "^4.42.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.10.3"
+  },
+  "dependencies": {
+    "@msgpack/msgpack": "^1.12.0",
+    "@rmwc/button": "^6.0.1",
+    "@rmwc/dialog": "^6.0.3",
+    "@rmwc/elevation": "^6.0.3",
+    "@rmwc/select": "^6.0.1",
+    "@rmwc/switch": "^6.0.1",
+    "@rmwc/textfield": "^6.0.3",
+    "@types/classnames": "^2.2.10",
+    "@types/react": "^16.9.23",
+    "@types/react-dom": "^16.9.5",
+    "@types/react-router-dom": "^5.1.3",
+    "classnames": "^2.2.6",
+    "core-js": "^3.6.4",
+    "fibers": "^4.0.2",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-router-dom": "^5.1.2",
+    "sass": "^1.3.0"
+  }
+}
