@@ -42,11 +42,11 @@ export const ConnectionHandler: React.SFC = ({ children }) => {
 }
 
 export const App: React.SFC = () => {
-  const [room_name, setRoomname] = useState("NBA");
+  const [roomName, setRoomName] = useState("NBA");
 
   const updateRoom = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setRoomname(e.target.value);
-  }, [room_name]);
+    setRoomName(e.target.value);
+  }, [setRoomName]);
 
   return <Router>
     <RTCSignaling address="wss://calling.innovailable.eu">
@@ -59,8 +59,8 @@ export const App: React.SFC = () => {
             <div className="app">
               <h1>Welcome to UWP - the universal WebRTC Project</h1>
               <div>
-                <input type="text" placeholder={room_name} onChange={updateRoom} />
-                <Link to={"/c/" + room_name}>Join</Link>
+                <input type="text" placeholder={roomName} onChange={updateRoom} />
+                <Link to={"/c/" + roomName}>Join</Link>
               </div>
             </div>
           </Route>
