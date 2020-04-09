@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useState, useCallback } from 'react';
 
 import { BrowserRouter as Router, Switch, Route, useParams, Link } from 'react-router-dom';
 
@@ -41,6 +42,12 @@ export const ConnectionHandler: React.SFC = ({ children }) => {
 }
 
 export const App: React.SFC = () => {
+  const [room_name, setRoomname] = useState("NBA");
+
+  const updateRoom = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setRoomname(e.target.value);
+  }, [room_name]);
+
   return <Router>
     <RTCSignaling address="wss://calling.innovailable.eu">
       <ConnectionHandler>
@@ -52,9 +59,8 @@ export const App: React.SFC = () => {
             <div className="app">
               <h1>Welcome to UWP - the universal WebRTC Project</h1>
               <div>
-                <input type="text" placeholder="Room name" />
-                <Button type="button" label="Join"  outlined />
-                <Link to={"/c/asdf"} >{"asdf"}</Link>
+                <input type="text" placeholder={room_name} onChange={updateRoom} />
+                <Link to={"/c/" + room_name}>Join</Link>
               </div>
             </div>
           </Route>
