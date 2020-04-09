@@ -105,7 +105,13 @@ const DeviceSelect: React.SFC<DeviceSelectProps> = (props) => {
     disabled = true;
   }
 
-  return <Select label={deviceName} {...other} disabled={disabled} value={value} onChange={onChange}>
+  let placeholder: string | undefined;
+
+  if(devices == null || devices.length == 0) {
+    placeholder = `No ${deviceName.toLowerCase()} found`;
+  }
+
+  return <Select label={deviceName} placeholder={placeholder} {...other} disabled={disabled} value={value} onChange={onChange}>
     {options}
   </Select>
 }
@@ -132,7 +138,11 @@ async function updateDevices(setDevices: (devices: DeviceMap) => void) {
   });
 };
 
-function sanitizeDeviceId(id: string | undefined, key: string, devices: MediaDeviceInfo[]): string | undefined {
+function sanitizeDeviceId(id: string | undefined, key: string, devices?: MediaDeviceInfo[]): string | undefined {
+  if(devices == null) {
+    return id;
+  }
+
   const validId = (checkId: string) => {
     return devices.some((info) => info.deviceId === checkId);
   }
@@ -147,7 +157,7 @@ function sanitizeDeviceId(id: string | undefined, key: string, devices: MediaDev
     return stored;
   }
 
-  if(devices.length > 0) {
+  if(devices != null && devices.length > 0) {
     return devices[0].deviceId;
   }
 
@@ -155,8 +165,10 @@ function sanitizeDeviceId(id: string | undefined, key: string, devices: MediaDev
 }
 
 function getSourceConstraint<T>(enabled: boolean, deviceId?: string, other?: T) {
-  if(!enabled || deviceId == null) {
+  if(!enabled) {
     return false;
+  } else if(deviceId == null) {
+    return {};
   } else {
     return { deviceId, ...other }
   }
@@ -179,31 +191,34 @@ const StreamSelection: React.SFC<StreamSelectionProps> = ({ value, update }) => 
 
   // TODO save enabled/disabled
 
-  // update device list
+  // restore from storage
 
   useEffect(() => {
-    // restore from storage
-
     setAudioEnabled(localStorage.getItem("audioEnabled") != "false");
     setVideoEnabled(localStorage.getItem("videoEnabled") != "false");
     setResolution(localStorage.getItem("resolution") ?? "720p");
+  }, []);
 
+  // sanitize and restore ids
+
+  useEffect(() => {
+    setAudioId(sanitizeDeviceId(audioId, "audioInput", devices.audio));
+    setVideoId(sanitizeDeviceId(videoId, "videoInput", devices.video));
+  }, [devices]);
+
+  // update device list
+
+  useEffect(() => {
     const doUpdate = () => {
-      updateDevices((new_devices) => {
-	setDevices(new_devices);
-
-	setAudioId(sanitizeDeviceId(audioId, "audioInput", new_devices.audio));
-	setVideoId(sanitizeDeviceId(videoId, "videoInput", new_devices.video));
-      });
+      updateDevices(setDevices);
     };
 
     mediaDevices.ondevicechange = doUpdate;
-
     doUpdate();
 
     return () => {
       mediaDevices.ondevicechange = null;
-    }
+    };
   }, []);
 
   // get stream
@@ -212,6 +227,8 @@ const StreamSelection: React.SFC<StreamSelectionProps> = ({ value, update }) => 
     if(audioId == null || videoId == null || resolution == null) {
       return;
     }
+
+    // create constraints
 
     const resInfo = resolutions.get(resolution);
     const resData = {
@@ -224,12 +241,14 @@ const StreamSelection: React.SFC<StreamSelectionProps> = ({ value, update }) => 
       video: getSourceConstraint(videoEnabled, videoId, resData),
     };
 
-    console.log(constraints);
+    // wroth requesting?
 
     if(constraints.audio === false && constraints.video === false) {
       update(undefined);
       return;
     }
+
+    // actually create stream
 
     const stream_p = cleanup.current.then(() => {
       return Stream.createStream(constraints);
@@ -237,11 +256,15 @@ const StreamSelection: React.SFC<StreamSelectionProps> = ({ value, update }) => 
 
     update(stream_p);
 
+    // workaround because device list gets more detailed after guM
+
     if(devices.audio != null && devices.audio[0]?.label === "") {
       stream_p.then(() => {
         updateDevices(setDevices);
       })
     }
+
+    // cleanup
 
     return () => {
       cleanup.current = stream_p.then((stream) => stream.stop());
