@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState, useRef, useCallback } f
 import { Peer, RemotePeer, LocalPeer, Stream, MediaDomElement } from 'rtc-lib';
 import { VolumeProcessor } from '../volume';
 
-import { AwesomeIcon } from './font_awesome';
+import { FeatherIcon } from './feather';
 import { SimpleButton } from './form';
 import { useAnimationFrameLoop } from './animation';
 
@@ -114,7 +114,7 @@ export const VolumeInfo: React.SFC<{peer: Peer}> = ({ peer }) => {
   };
 
   return <SimpleButton clicked={toggleMuted} className="user_input_btn" style={style}>
-    <AwesomeIcon icon={muted ? "microphone-alt-slash" : "microphone-alt"} />
+    <FeatherIcon icon={muted ? "mic-off" : "mic"} />
   </SimpleButton>;
 }
 
@@ -123,7 +123,7 @@ export const CamInfo: React.SFC<{ peer: Peer }> = ({ peer }) => {
   const [muted, toggleMuted] = useStreamMute(stream, "video");
 
   return <SimpleButton clicked={toggleMuted} className="user_input_btn">
-    <AwesomeIcon icon={muted ? "video-slash" : "video"} />
+    <FeatherIcon icon={muted ? "cam-off" : "cam"} />
   </SimpleButton>;
 }
 
@@ -154,7 +154,7 @@ export const SecurityInfo: React.SFC<{ peer: RemotePeer }> = ({ peer }) => {
 
   return <div className="key_wrapper">
     <SimpleButton clicked={toggleShow} className="user_input_btn">
-      <AwesomeIcon icon="key" />
+      <FeatherIcon icon="key" />
     </SimpleButton>;
     {display}
   </div>
