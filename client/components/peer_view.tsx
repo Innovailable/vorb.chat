@@ -123,7 +123,7 @@ export const CamInfo: React.SFC<{ peer: Peer }> = ({ peer }) => {
   const [muted, toggleMuted] = useStreamMute(stream, "video");
 
   return <SimpleButton clicked={toggleMuted} className="user_input_btn">
-    <FeatherIcon icon={muted ? "cam-off" : "cam"} />
+    <FeatherIcon icon={muted ? "video-off" : "video"} />
   </SimpleButton>;
 }
 
