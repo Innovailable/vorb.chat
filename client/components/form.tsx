@@ -39,7 +39,7 @@ export class TextInput extends React.PureComponent<TextInputProps> {
 
   render() {
     const { update, ...other} = this.props;
-    return <TextField onChange={this.handleChange.bind(this)} {...other} />
+    return <TextField outlined onChange={this.handleChange.bind(this)} {...other} />
   }
 }
 
@@ -224,4 +224,3 @@ export class SmartSelect extends React.PureComponent<SmartSelectProps,SmartSelec
     </select>
   }
 }
-

@@ -3,9 +3,12 @@ import { useState, useCallback } from 'react';
 
 import { Link } from 'react-router-dom';
 
-import { TextInput, SimpleButton } from './form';
+import { TextInput, TextArea, SimpleButton } from './form';
+
+import { FeatherIcon } from './feather';
 
 import { SimpleDialog } from '@rmwc/dialog';
+import { Button } from '@rmwc/button';
 import '@rmwc/dialog/styles';
 
 import { RTCRoom, useRoom, useRoomState, useRoomPeers, useChatTextSend,  } from './rtc_room';
@@ -29,7 +32,6 @@ const UserList: React.SFC = () => {
 
   const peer_views = Array.from(Object.entries(peers), ([id, peer]) => {
     return <React.Fragment key={id}>
-      <div>{peer.status("name")}</div>
       <RemotePeerDisplay peer={peer} />
     </React.Fragment>
   });
@@ -48,9 +50,9 @@ const ChatInput: React.SFC = () => {
     setMessage("");
   }, [message, send, setMessage]);
 
-  return <div>
+  return <div className="chat_input">
     <TextInput value={message} update={setMessage} />
-    <SimpleButton clicked={click}>Send</SimpleButton>
+    <Button onClick={click} outlined><FeatherIcon icon="send" /> </Button>
   </div>
 }
 
@@ -93,26 +95,22 @@ export const Room: React.SFC<RoomProps> = (props) => {
     <RoomStateDialogs />
     <div className="container">
       <div className="header">
-	<span>Logo here!</span>
-	<Link to="/">Home</Link>
+        <h2>{room_name}</h2>
+        <Link to="/"><h2>UWP - Home</h2></Link>
       </div>
       <div className="content">
-	<div className="stage">
-	  <h1>{room_name}</h1>
-	  <UserList />
-	  <Link to="/">Back</Link>
-	</div>
-	<div className="sidebar">
-	  <SelfContainer />
-	  <MessageList />
-	  <ChatInput />
-	</div>
-
-      </div>
-      <div className="footer">
-	<span>Innovailable ist toll</span>
-      </div>
-
-    </div>
+        <div className="stage">
+          <UserList />
+	     </div>
+       <div className="sidebar">
+         <SelfContainer />
+	       <MessageList />
+	       <ChatInput />
+	      </div>
+     </div>
+     <div className="footer">
+	     <span>Innovailable ist toll</span>
+     </div>
+   </div>
   </RTCRoom>
 }

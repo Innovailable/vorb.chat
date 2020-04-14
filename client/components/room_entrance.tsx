@@ -310,7 +310,7 @@ export const RoomEntrance: React.SFC = () => {
   return <Dialog open={true} onClose={() => null} preventOutsideDismiss>
     <DialogTitle>Select Devices</DialogTitle>
     <DialogContent>
-      <TextInput label="Name" fullwidth value={name} update={setName} />
+      <TextInput label="Name" value={name} update={setName} />
       <br/>
       <div className="video_preview">
 	<StreamVideo stream={stream} muted />

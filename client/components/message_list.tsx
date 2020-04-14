@@ -6,17 +6,15 @@ import { Message, IncomingMessage, OutgoingMessage, StatusMessage } from '../cha
 
 const OutgoingMessageComponent: React.SFC<{ message: OutgoingMessage }> = ({ message }) => {
   // TODO i18n
-  return <>
-    <div className="message_user">You</div>
-    <div className="message_text">{message.text}</div>
-  </>
+  return <span className="outgoing_message">
+    <div>You: {message.text}</div>
+  </span>
 }
 
 const IncomingMessageComponent: React.SFC<{ message: IncomingMessage }> = ({ message }) => {
-  return <>
-    <div className="message_user">{message.from}</div>
-    <div className="message_text">{message.text}</div>
-  </>
+  return <span className="incoming_message">
+    <div>{message.from}: {message.text}</div>
+  </span>
 }
 
 const StatusMessageComponent: React.SFC<{ message: StatusMessage }> = ({ message }) => {
@@ -62,7 +60,7 @@ export const MessageList: React.SFC = () => {
     </div>
   });
 
-  return <div>
+  return <div className="message_list">
     {message_views}
   </div>;
 }

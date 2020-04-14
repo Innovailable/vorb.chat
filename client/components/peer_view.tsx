@@ -155,9 +155,9 @@ export const SecurityInfo: React.SFC<{ peer: RemotePeer }> = ({ peer }) => {
   return <div className="key_wrapper">
     <SimpleButton clicked={toggleShow} className="user_input_btn">
       <FeatherIcon icon="key" />
-    </SimpleButton>;
+    </SimpleButton>
     {display}
-  </div>
+  </div>;
 }
 
 interface StreamVideoProps extends React.HTMLProps<HTMLVideoElement> {
@@ -203,6 +203,7 @@ export const RemotePeerDisplay: React.SFC<{ peer: RemotePeer }> = ({ peer }) => 
     <div className="user_buttons">
       <VolumeInfo peer={peer} />
       <SecurityInfo peer={peer} />
+      <span className="username_stream">{peer.status("name")}</span>
     </div>
   </div>;
 }

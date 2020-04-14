@@ -7,8 +7,39 @@
     display: inline-block;
 }
 
+$highlight-color: red;
+
+a, a.visited {
+  text-decoration: none;
+  color: black;
+}
+
+.highlight {
+  color: $highlight-color;
+}
+
+#root {
+  margin-top: 2em;
+}
+
+.center_wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
 .app {
-	color: blue;
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  .join {
+    align-self: center;
+    margin-top: 3em;
+    button {
+      margin-left: -2px;
+      height: 56px;
+    }
+  }
 }
 
 .user_view {
@@ -21,6 +52,9 @@
 	position: absolute;
 	left: 0;
 	top: 0;
+  .username_stream {
+    margin-left: 1em;
+  }
 }
 
 .user_self {
@@ -29,58 +63,82 @@
 	}
 }
 
-#root {
-	text-align: center;
-}
-
-.room_wrapper {
-	max-width: 1900px;
-	margin-left: auto;
-	margin-right: auto;
-}
-
-.self_container {
-	width: 20em;
-	float: right;
-	video {
-		width: 100%;
-	}
-}
-
-
-.user_list {
-	width: 60%;
-}
 
 .container {
+  min-width: 94vw;
+  padding-left: 3vw;
+  padding-right: 3vw;
 	display: flex;
 	flex-direction: column;
-}
-
-.header {
-	flex-basis: 0;
-}
-
-.footer {
-	flex-basis: 0;
-}
-
-.content {
-	display: flex;
-	flex-direction: row;
-	flex-basis: auto;
-}
-
-.sidebar {
-	width: 300px;
-	flex-basis: 0;
-	display: flex;
-	flex-direction: column;
-
-}
-
-.stage {
-	min-width: 50%;
+  .header {
+    flex-grow: 0;
+    margin-bottom: 2em;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    h2 {
+      display: inline-block;
+    }
+  }
+  .footer {
+    margin-top: 2em;
+    flex-grow: 0;
+  }
+  .content {
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+    // padding-left: 2em;
+    // padding-right: 2em;
+    .stage {
+      flex-grow: 5;
+      flex-basis: 0;
+      video {
+        width: 100%;
+      }
+    }
+    .sidebar {
+      margin-left: 2em;
+      width: 10em;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      .self_container {
+        flex-grow: 0;
+        flex-basis: auto;
+        video {
+          width: 100%;
+        }
+      }
+      .message_list {
+        min-height: 10em;
+        margin-top: 1em;
+        margin-bottom: 1em;
+        flex-grow: 1;
+        background-color: lightgrey;
+        .incoming_message {
+          text-align: left;
+        }
+        .outgoing_message {
+          text-align: right;
+        }
+      }
+      .chat_input {
+        flex-grow: 0;
+        display: flex;
+        flex-direction: row;
+        label {
+          flex-grow: 2;
+        }
+        button {
+          margin-left: -2px;
+          width: 2em;
+          height: 56px;
+          flex-grow: 0;
+        }
+      }
+    }
+  }
 }
 
 .user_input_btn {
