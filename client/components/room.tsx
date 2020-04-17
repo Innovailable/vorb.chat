@@ -36,9 +36,9 @@ const UserList: React.SFC = () => {
     </React.Fragment>
   });
 
-  return <div className="user_list">
+  return <>
     {peer_views}
-  </div>;
+  </>;
 };
 
 const ChatInput: React.SFC = () => {

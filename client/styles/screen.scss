@@ -1,10 +1,14 @@
+body {
+  margin: 0px;
+}
+
 @mixin text_button {
-    border: none;
-    background-color: inherit;
-    padding: 14px 28px;
-    font-size: 16px;
-    cursor: pointer;
-    display: inline-block;
+  border: none;
+  background-color: inherit;
+  padding: 14px 28px;
+  font-size: 16px;
+  cursor: pointer;
+  display: inline-block;
 }
 
 $highlight-color: red;
@@ -19,7 +23,6 @@ a, a.visited {
 }
 
 #root {
-  margin-top: 2em;
 }
 
 .center_wrapper {
@@ -43,15 +46,16 @@ a, a.visited {
 }
 
 .user_view {
-	width: 100%;
-	border: solid 1px red;
-	position: relative;
+  width: 100%;
+  border: solid 1px black;
+  position: relative;
 }
 
 .user_buttons {
-	position: absolute;
-	left: 0;
-	top: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+
   .username_stream {
     margin-left: 1em;
   }
@@ -65,12 +69,15 @@ a, a.visited {
 
 
 .container {
+  height: 100vh;
   min-width: 94vw;
   padding-left: 3vw;
   padding-right: 3vw;
-	display: flex;
-	flex-direction: column;
+  display: flex;
+  flex-direction: column;
+
   .header {
+    margin-top: 2em;
     flex-grow: 0;
     margin-bottom: 2em;
     display: flex;
@@ -93,8 +100,21 @@ a, a.visited {
     .stage {
       flex-grow: 5;
       flex-basis: 0;
-      video {
-        width: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      .user_view {
+        margin: 2em;
+
+        display: flex;
+        align-items: center;
+
+        video {
+          display: block;
+          flex-grow: 1;
+          width: 2em;
+        }
       }
     }
     .sidebar {
@@ -103,6 +123,7 @@ a, a.visited {
       flex-grow: 1;
       display: flex;
       flex-direction: column;
+      content-align: center;
       .self_container {
         flex-grow: 0;
         flex-basis: auto;
@@ -115,6 +136,7 @@ a, a.visited {
         margin-top: 1em;
         margin-bottom: 1em;
         flex-grow: 1;
+        padding: 0.5em;
         background-color: lightgrey;
         .incoming_message {
           text-align: left;
