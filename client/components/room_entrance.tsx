@@ -224,7 +224,7 @@ const StreamSelection: React.SFC<StreamSelectionProps> = ({ value, update }) => 
   // get stream
 
   useEffect(() => {
-    if(audioId == null || videoId == null || resolution == null) {
+    if(resolution == null) {
       return;
     }
 
