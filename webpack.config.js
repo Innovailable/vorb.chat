@@ -1,4 +1,5 @@
 const path = require('path');
+const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = (env="production") => {
     const production = env === "production";
@@ -47,6 +48,10 @@ module.exports = (env="production") => {
             ],
         },
         devtool: production ? "source-map" : 'inline-source-map',
+        optimization: {
+            minimize: production,
+            minimizer: [new TerserPlugin()],
+        },
         resolve: {
             extensions: [ '.tsx', '.ts', '.js', '.scss', '.css' ]
         },

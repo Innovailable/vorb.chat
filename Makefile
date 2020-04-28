@@ -27,11 +27,9 @@ dist: production Makefile
 	@mkdir -p dist/js
 	cp $(PROD_FILE) $(PROD_FILE).map dist/js
 	cp -a static/* dist/
+	find dist/ -type f ! -name '*.gz' -exec gzip -fk "{}" \;
 
 $(DEV_FILE): $(CLIENT) $(STATIC) node_modules Makefile webpack.config.js .babelrc
-	@echo $@
-	@echo $(CLIENT)
-	@echo $(STATIC)
 	node_modules/.bin/webpack --env development
 
 $(PROD_FILE): $(CLIENT) $(STATIC) node_modules Makefile webpack.config.js .babelrc
