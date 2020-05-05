@@ -115,6 +115,18 @@ a, a.visited {
           flex-grow: 1;
           width: 2em;
         }
+
+        .user_stream_pip {
+          video {
+            width: 100%;
+          }
+
+          opacity: 80%;
+          position: absolute;
+          right: 5%;
+          top: 5%;
+          width: 20%;
+        }
       }
     }
     .sidebar {

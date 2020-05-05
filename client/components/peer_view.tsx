@@ -4,6 +4,9 @@ import { createContext, useContext, useEffect, useState, useRef, useCallback } f
 import { Peer, RemotePeer, LocalPeer, Stream, MediaDomElement } from 'rtc-lib';
 import { VolumeProcessor } from '../volume';
 
+import { Elevation } from '@rmwc/elevation';
+import '@rmwc/elevation/styles';
+
 import { FeatherIcon } from './feather';
 import { SimpleButton } from './form';
 import { useAnimationFrameLoop } from './animation';
@@ -239,8 +242,10 @@ export const RemotePeerDisplay: React.SFC<{ peer: RemotePeer }> = ({ peer }) => 
 
   if(screenshareActive) {
     streamView = <>
-      <StreamVideo className="user_stream_pip" stream={stream} />
       <StreamVideo className="user_stream_main" stream={screenshare} />
+      <Elevation z={5} className="user_stream_pip">
+        <StreamVideo stream={stream} />
+      </Elevation>
     </>
   } else {
     streamView = <StreamVideo className="user_stream_main" stream={stream} />;
