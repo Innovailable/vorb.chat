@@ -224,7 +224,7 @@ export const LocalPeerDisplay: React.SFC<{ peer: LocalPeer }> = ({ peer }) => {
   const stream = useInputStream();
 
   return <div className="user_view user_self">
-    <StreamVideo stream={stream} />
+    <StreamVideo muted stream={stream} />
     <div className="user_buttons">
       <VolumeInfo stream={stream} />
       <CamInfo stream={stream} />
