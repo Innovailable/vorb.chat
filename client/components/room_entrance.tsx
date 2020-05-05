@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
 import { Stream } from 'rtc-lib';
-import { useRoomConnect, useInputDevices, useInputControl, useInputStream, useInputStreamPromise, usePromiseResult } from './rtc_room';
+import { useRoomConnect, useInputDevices, useInputControl, useInputStreamPromise } from './rtc_room';
 import { StreamVideo } from './peer_view';
 import { TextInput, SimpleButton } from './form';
 
@@ -155,8 +155,7 @@ const StreamSelection: React.SFC<StreamSelectionProps> = ({ }) => {
 
 export const RoomEntrance: React.SFC = () => {
   const [name, setName] = useState(localStorage.getItem("name") || createName());
-  const streamPromise = useInputStreamPromise();
-  const stream = usePromiseResult(streamPromise);
+  const stream = useInputStreamPromise();
   const connect = useRoomConnect();
 
   const click = useCallback(() => {
@@ -166,7 +165,7 @@ export const RoomEntrance: React.SFC = () => {
     localStorage.setItem("name", name);
 
     connect(name);
-  }, [name, stream]);
+  }, [name, connect]);
 
   return <Dialog open={true} onClose={() => null} preventOutsideDismiss>
     <DialogTitle>Select Devices</DialogTitle>

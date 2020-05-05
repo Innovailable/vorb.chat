@@ -93,6 +93,14 @@ export function sanitizeInputConfiguration(config: InputConfiguration, devices?:
   };
 }
 
+async function stopStream(streamPromise: Promise<Stream>) {
+  try {
+    const stream = await streamPromise;
+    stream.stop();
+  } catch {
+  }
+}
+
 interface InputControlEvents {
   devicesChanged: DeviceMapData | undefined;
   streamChanged: Promise<Stream> | undefined;
@@ -113,9 +121,8 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
     });
   }
 
-  async configureStream(config: InputConfiguration) {
+  configureStream(config: InputConfiguration) {
     if(equal(this.configuration, config)) {
-      console.log('keeping configuration');
       return;
     }
 
@@ -126,6 +133,16 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
       return;
     }
 
+    try {
+      const stream = this.createStream(config);
+      this.setStream(stream);
+    } catch(err) {
+      console.log('Unable to get user media');
+      this.setStream(undefined);
+    }
+  }
+
+  private async createStream(config: InputConfiguration): Promise<Stream> {
     const resInfo = resolutions.get(config.video.resolution);
 
     const resData = {
@@ -139,18 +156,16 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
     };
 
     if(this.stream) {
-      const oldStream = await this.stream;
-      oldStream.stop();
+      await stopStream(this.stream);
     }
 
-    const stream = Stream.createStream(constraints);
-    this.setStream(stream);
+    const stream = await Stream.createStream(constraints);
 
-    stream.then(() => {
-      if(!this.deviceMapHandler.fullyLoaded()) {
-        this.deviceMapHandler.load();
-      }
-    });
+    if(!this.deviceMapHandler.fullyLoaded()) {
+      this.deviceMapHandler.load();
+    }
+
+    return stream;
   }
 
   getStream() {
@@ -158,21 +173,55 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
   }
 
   private setStream(stream: Promise<Stream> | undefined) {
-    if(this.stream != null) {
-      this.stream.then((oldStream) => {
-        oldStream.stop();
-      });
-    }
-
     this.stream = stream;
     this.emit('streamChanged', stream);
   }
 
+  async startScreenshare() {
+    if(this.screenshare != null) {
+      return;
+    }
+
+    // TODO remove once fixed in typescript
+    // @ts-ignore
+    const screenshare: Promise<Stream> = navigator.mediaDevices.getDisplayMedia().then((ms) => new Stream(ms));
+    this.setScreenshare(screenshare);
+  }
+
+  async stopScreenshare() {
+    if(this.screenshare) {
+      const { screenshare } = this;
+      this.setScreenshare(undefined);
+      await stopStream(screenshare);
+    }
+  }
+
+  toggleScreenshare() {
+    if(this.screenshare == null) {
+      return this.startScreenshare();
+    } else {
+      return this.stopScreenshare();
+    }
+  }
+
+  getScreenshare() {
+    return this.screenshare;
+  }
+
+  private setScreenshare(screenshare: Promise<Stream> | undefined) {
+    this.screenshare = screenshare;
+    this.emit('screenshareChanged', screenshare);
+  }
+
   close() {
     if(this.stream != null) {
-      this.stream.then((oldStream) => {
-        oldStream.stop();
-      });
+      stopStream(this.stream);
+      this.stream = undefined;
+    }
+
+    if(this.screenshare != null) {
+      stopStream(this.screenshare);
+      this.stream = undefined;
     }
 
     this.deviceMapHandler.close();

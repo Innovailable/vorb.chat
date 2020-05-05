@@ -7,15 +7,18 @@ import { VolumeProcessor } from '../volume';
 import { FeatherIcon } from './feather';
 import { SimpleButton } from './form';
 import { useAnimationFrameLoop } from './animation';
+import { usePromiseResult } from './helper';
+import { useInputStream, useInputControl } from './rtc_room';
 
-const usePeerStream = (peer: Peer) => {
-  const [stream, setStream] = useState<Promise<Stream>>();
+const usePeerStream = (peer: Peer, name?: string) => {
+  const [streamPromise, setStreamPromise] = useState<Promise<Stream>>();
+  const stream = usePromiseResult(streamPromise);
 
   useEffect(() => {
-    setStream(peer.stream());
+    setStreamPromise(peer.stream(name));
 
     const changeCb = () => {
-      setStream(peer.stream());
+      setStreamPromise(peer.stream(name));
     };
 
     peer.on('streams_changed', changeCb);
@@ -23,12 +26,12 @@ const usePeerStream = (peer: Peer) => {
     return () => {
       peer.removeListener('streams_changed', changeCb);
     };
-  }, [peer]);
+  }, [peer, name]);
 
   return stream;
 }
 
-const useStreamMute = (stream: Promise<Stream> | undefined, muteType: "audio" | "video"): [boolean, () => void] => {
+const useStreamMute = (stream: Stream | undefined, muteType: "audio" | "video"): [boolean, () => void] => {
   const [muted, setMuted] = useState(true);
 
   const toggleMute = useCallback(() => {
@@ -36,9 +39,7 @@ const useStreamMute = (stream: Promise<Stream> | undefined, muteType: "audio" | 
       return;
     }
 
-    stream.then((stream) => {
-      stream.mute(!muted, muteType);
-    });
+    stream.mute(!muted, muteType);
   }, [stream, muted]);
 
   useEffect(() => {
@@ -53,21 +54,19 @@ const useStreamMute = (stream: Promise<Stream> | undefined, muteType: "audio" | 
       }
     };
 
-    stream.then((stream) => {
-      setMuted(stream.muted(muteType));
+    setMuted(stream.muted(muteType));
 
-      stream.on("mute_changed", muteChangedCb);
-    });
+    stream.on("mute_changed", muteChangedCb);
 
     return () => {
-      stream.then((stream) => stream.removeListener("mute_changed", muteChangedCb));
+      stream.removeListener("mute_changed", muteChangedCb);
     };
   }, [stream]);
 
   return [muted, toggleMute];
 }
 
-const useStreamVolume = (stream?: Promise<Stream>) => {
+const useStreamVolume = (stream: Stream | undefined) => {
   const [volume, setVolume] = useState(0);
   const processorRef = useRef<VolumeProcessor>();
 
@@ -84,22 +83,42 @@ const useStreamVolume = (stream?: Promise<Stream>) => {
       return;
     }
 
-    const processor_p = stream.then((stream) => {
-      const processor = new VolumeProcessor(stream.stream);
-      processorRef.current = processor;
-      return processor;
-    });
+    const processor = new VolumeProcessor(stream.stream);
+    processorRef.current = processor;
 
     return () => {
-      processor_p.then((processor) => processor.close());
+      processor.close();
     };
   }, [stream]);
 
   return volume;
 }
 
-export const VolumeInfo: React.SFC<{peer: Peer}> = ({ peer }) => {
-  const stream = usePeerStream(peer);
+const useStreamActive = (stream: Stream | undefined) => {
+  const [active, setActive] = useState(false);
+
+  useEffect(() => {
+    if(stream == null) {
+      setActive(false);
+      return;
+    }
+
+    const update = () => {
+      setActive(stream.stream.active);
+    };
+
+    update();
+    stream.on('tracks_changed', update);
+
+    return () => {
+      stream.off('tracks_changed', update);
+    };
+  }, [stream]);
+
+  return active;
+}
+
+export const VolumeInfo: React.SFC<{ stream?: Stream }> = ({ stream }) => {
   const [muted, toggleMuted] = useStreamMute(stream, "audio");
   const volume = useStreamVolume(stream);
 
@@ -118,8 +137,7 @@ export const VolumeInfo: React.SFC<{peer: Peer}> = ({ peer }) => {
   </SimpleButton>;
 }
 
-export const CamInfo: React.SFC<{ peer: Peer }> = ({ peer }) => {
-  const stream = usePeerStream(peer);
+export const CamInfo: React.SFC<{ stream?: Stream }> = ({ stream }) => {
   const [muted, toggleMuted] = useStreamMute(stream, "video");
 
   return <SimpleButton clicked={toggleMuted} className="user_input_btn">
@@ -187,21 +205,51 @@ export const StreamVideo: React.SFC<StreamVideoProps> = ({ stream, ...other }) =
   return <video autoPlay {...other} ref={video} />
 }
 
+export const ScreenshareButton: React.SFC = () => {
+  const input = useInputControl();
+
+  const toggle = useCallback(() => {
+    input?.toggleScreenshare();
+  }, [input]);
+
+  return <SimpleButton clicked={toggle}>
+      <FeatherIcon icon="share" />
+  </SimpleButton>
+};
+
 export const LocalPeerDisplay: React.SFC<{ peer: LocalPeer }> = ({ peer }) => {
+  const stream = useInputStream();
+
   return <div className="user_view user_self">
-    <StreamVideo stream={peer} />
+    <StreamVideo stream={stream} />
     <div className="user_buttons">
-      <VolumeInfo peer={peer} />
-      <CamInfo peer={peer} />
+      <VolumeInfo stream={stream} />
+      <CamInfo stream={stream} />
+      <ScreenshareButton />
     </div>
   </div>;
 }
 
 export const RemotePeerDisplay: React.SFC<{ peer: RemotePeer }> = ({ peer }) => {
+  const stream = usePeerStream(peer);
+  const screenshare = usePeerStream(peer, 'screenshare');
+  const screenshareActive = useStreamActive(screenshare);
+
+  let streamView: React.ReactNode;
+
+  if(screenshareActive) {
+    streamView = <>
+      <StreamVideo className="user_stream_pip" stream={stream} />
+      <StreamVideo className="user_stream_main" stream={screenshare} />
+    </>
+  } else {
+    streamView = <StreamVideo className="user_stream_main" stream={stream} />;
+  }
+
   return <div className="user_view">
-    <StreamVideo stream={peer} />
+    {streamView}
     <div className="user_buttons">
-      <VolumeInfo peer={peer} />
+      <VolumeInfo stream={stream} />
       <SecurityInfo peer={peer} />
       <span className="username_stream">{peer.status("name")}</span>
     </div>

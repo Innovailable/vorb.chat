@@ -110,7 +110,7 @@ a, a.visited {
         display: flex;
         align-items: center;
 
-        video {
+        .user_stream_main {
           display: block;
           flex-grow: 1;
           width: 2em;

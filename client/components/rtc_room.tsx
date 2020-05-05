@@ -7,6 +7,7 @@ import { InputControl } from '../input_control';
 
 import { useSignaling } from './rtc_signaling';
 import { DeviceMapData } from '../device_map';
+import { usePromiseResult } from './helper';
 
 interface RoomContextState {
   input?: InputControl;
@@ -33,14 +34,11 @@ export const useRoomConnect = () => {
     const local = room.local;
     local.status("name", name);
 
-    if(stream != null) {
-      room.local.addStream(Peer.DEFAULT_STREAM, stream);
-    }
 
     room.connect().catch((err) => {
       console.log(err);
     });
-  }, [room, stream]);
+  }, [room]);
 }
 
 export const useRoomState = () => {
@@ -83,7 +81,43 @@ export const RTCRoom: React.SFC<RTCRoomProps> = ({ name, children }) => {
     const input = new InputControl();
     setContext({ room, chat, input });
 
-    room.on('peer_joined', (peer) => {
+    room.on('peer_joined', (peer: RemotePeer) => {
+      const stream = input.getStream();
+
+      // TODO make sure this never happens
+      if(stream) {
+        peer.addStream(stream);
+      }
+
+      peer.addStream('screenshare', new Stream(new MediaStream()), (createTransceiver) => {
+        const transceiver = createTransceiver('video', { direction: 'recvonly' });
+
+        const update = async (screenshare: Promise<Stream> | undefined) => {
+          try {
+            if(screenshare != null) {
+              const stream = await screenshare;
+              transceiver.sender.replaceTrack(stream.getTracks('video')[0]);
+              transceiver.direction = 'sendrecv';
+            } else {
+              transceiver.sender.replaceTrack(null);
+              transceiver.direction = 'recvonly';
+            }
+          } catch(err) {
+            transceiver.sender.replaceTrack(null);
+            transceiver.direction = 'recvonly';
+          }
+
+          peer.negotiate();
+        };
+
+        update(input.getScreenshare());
+        input.on('screenshareChanged', update);
+
+        peer.once('left', () => {
+          input.off('screenshareChanged', update);
+        });
+      });
+
       peer.connect();
     });
 
@@ -207,37 +241,10 @@ export const useInputStreamPromise = () => {
   }, [input]);
 
   return stream;
-}
-
-export function usePromiseResult<T>(promise: Promise<T> | undefined): T | undefined {
-  const [result, setResult] = useState<T>();
-
-  useEffect(() => {
-    setResult(undefined);
-
-    if(promise == null) {
-      return;
-    }
-
-    let cancelled = false;
-
-    promise.then((data) => {
-      if(cancelled) {
-        return;
-      }
-
-      setResult(data);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [promise]);
-
-  return result;
 };
 
 export const useInputStream = () => {
   const streamPromise = useInputStreamPromise();
   return usePromiseResult(streamPromise);
-}
+};
+
