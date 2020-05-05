@@ -3,10 +3,13 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 
 import { CallingRoom, Stream, Peer, RemotePeer } from 'rtc-lib';
 import { Chat, Message } from '../chat';
+import { InputControl } from '../input_control';
 
 import { useSignaling } from './rtc_signaling';
+import { DeviceMapData } from '../device_map';
 
 interface RoomContextState {
+  input?: InputControl;
   room?: CallingRoom;
   chat?: Chat;
 }
@@ -15,11 +18,13 @@ const RoomContext = createContext<RoomContextState>({});
 
 export const useRoom = () => useContext(RoomContext).room;
 export const useChat = () => useContext(RoomContext).chat;
+export const useInputControl = () => useContext(RoomContext).input;
 
 export const useRoomConnect = () => {
   const room = useRoom();
+  const stream = useInputStreamPromise();
 
-  return useCallback((name: string, stream?: Promise<Stream> | Stream) => {
+  return useCallback((name: string) => {
     if(room == null) {
       console.log("Unable to join room without room");
       return;
@@ -35,7 +40,7 @@ export const useRoomConnect = () => {
     room.connect().catch((err) => {
       console.log(err);
     });
-  }, [room]);
+  }, [room, stream]);
 }
 
 export const useRoomState = () => {
@@ -75,14 +80,16 @@ export const RTCRoom: React.SFC<RTCRoomProps> = ({ name, children }) => {
 
     const room = calling.room(name);
     const chat = new Chat(room);
-    setContext({ room, chat });
+    const input = new InputControl();
+    setContext({ room, chat, input });
+
+    room.on('peer_joined', (peer) => {
+      peer.connect();
+    });
 
     return () => {
-      room.local.stream()?.then((stream) => {
-        stream.stop();
-      });
-
       room.leave()
+      input.close();
     };
   }, [calling, name]);
 
@@ -135,10 +142,10 @@ export const useChatMessages = () => {
       setMessages(chat.getNamedMessages());
     };
 
-    chat.on("messages_changed", messageCb);
+    chat.on("messagesChanged", messageCb);
 
     return () => {
-      chat.removeListener("messages_changed", messageCb);
+      chat.off("messagesChanged", messageCb);
     }
   }, [chat, setMessages]);
 
@@ -157,4 +164,80 @@ export const useChatTextSend = () => {
 
     chat.sendText(text);
   }, [chat]);
+}
+
+export const useInputDevices = () => {
+  const [devices, setDevices] = useState<DeviceMapData>();
+  const input = useInputControl();
+
+  useEffect(() => {
+    if(input == null) {
+      setDevices(undefined);
+      return;
+    }
+
+    setDevices(input.getDevices());
+    input.on('devicesChanged', setDevices);
+
+    return () => {
+      input.off('devicesChanged', setDevices);
+    };
+  }, [input]);
+
+  return devices;
+}
+
+
+export const useInputStreamPromise = () => {
+  const [stream, setStream] = useState<Promise<Stream> | undefined>();
+  const input = useInputControl();
+
+  useEffect(() => {
+    if(input == null) {
+      setStream(undefined);
+      return;
+    }
+
+    setStream(input.getStream());
+    input.on('streamChanged', setStream);
+
+    return () => {
+      input.off('streamChanged', setStream);
+    };
+  }, [input]);
+
+  return stream;
+}
+
+export function usePromiseResult<T>(promise: Promise<T> | undefined): T | undefined {
+  const [result, setResult] = useState<T>();
+
+  useEffect(() => {
+    setResult(undefined);
+
+    if(promise == null) {
+      return;
+    }
+
+    let cancelled = false;
+
+    promise.then((data) => {
+      if(cancelled) {
+        return;
+      }
+
+      setResult(data);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [promise]);
+
+  return result;
+};
+
+export const useInputStream = () => {
+  const streamPromise = useInputStreamPromise();
+  return usePromiseResult(streamPromise);
 }

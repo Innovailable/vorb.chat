@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
 import { Stream } from 'rtc-lib';
-import { useRoomConnect } from './rtc_room';
+import { useRoomConnect, useInputDevices, useInputControl, useInputStream, useInputStreamPromise, usePromiseResult } from './rtc_room';
 import { StreamVideo } from './peer_view';
 import { TextInput, SimpleButton } from './form';
 
@@ -16,36 +16,7 @@ import { Switch } from '@rmwc/switch';
 import '@rmwc/switch/styles';
 import { Select, SelectProps } from '@rmwc/select';
 import '@rmwc/select/styles';
-
-const { mediaDevices } = navigator;
-
-interface ResolutionInfo {
-  name: string;
-  dimensions: [number,number],
-}
-
-const resolutions = new Map<string,ResolutionInfo>([
-  ["qvga", {
-    name: "QVGA",
-    dimensions: [320, 240],
-  }],
-  ["vga", {
-    name: "VGA",
-    dimensions: [640, 480],
-  }],
-  ["720p", {
-    name: "HD",
-    dimensions: [1280, 720],
-  }],
-  ["1080p", {
-    name: "Full HD",
-    dimensions: [1920, 1080],
-  }],
-  ["4k", {
-    name: "UHD 4k",
-    dimensions: [3180, 2160],
-  }],
-])
+import { resolutions, sanitizeInputConfiguration } from '../input_control';
 
 interface ResolutionSelectProps extends SelectProps {
   value?: string;
@@ -116,76 +87,17 @@ const DeviceSelect: React.SFC<DeviceSelectProps> = (props) => {
   </Select>
 }
 
-function filterDevices(devices: MediaDeviceInfo[], kind: MediaDeviceKind) {
-  const ids = new Set<string>();
-
-  return devices.filter((device) => {
-    if(ids.has(device.deviceId)) {
-      return false;
-    }
-
-    ids.add(device.deviceId);
-    return device.kind === kind
-  });
-}
-
-async function updateDevices(setDevices: (devices: DeviceMap) => void) {
-  const devices = await mediaDevices.enumerateDevices()
-
-  setDevices({
-    audio: filterDevices(devices, "audioinput"),
-    video: filterDevices(devices, "videoinput"),
-  });
-};
-
-function sanitizeDeviceId(id: string | undefined, key: string, devices?: MediaDeviceInfo[]): string | undefined {
-  if(devices == null) {
-    return id;
-  }
-
-  const validId = (checkId: string) => {
-    return devices.some((info) => info.deviceId === checkId);
-  }
-
-  if(id != null && validId(id)) {
-    return id;
-  }
-
-  const stored = localStorage.getItem(key);
-
-  if(stored != null && validId(stored)) {
-    return stored;
-  }
-
-  if(devices != null && devices.length > 0) {
-    return devices[0].deviceId;
-  }
-
-  return undefined;
-}
-
-function getSourceConstraint<T>(enabled: boolean, deviceId?: string, other?: T) {
-  if(!enabled) {
-    return false;
-  } else if(deviceId == null) {
-    return {};
-  } else {
-    return { deviceId, ...other }
-  }
-}
-
 interface StreamSelectionProps {
-  value?: Promise<Stream>;
-  update: (data: Promise<Stream> | undefined) => void
 }
 
-const StreamSelection: React.SFC<StreamSelectionProps> = ({ value, update }) => {
-  const [devices, setDevices] = useState<Partial<DeviceMap>>({});
+const StreamSelection: React.SFC<StreamSelectionProps> = ({ }) => {
+  const inputControl = useInputControl();
+  const devices = useInputDevices();
   const [audioEnabled, setAudioEnabled] = useState<boolean>(true);
   const [audioId, setAudioId] = useState<string>();
   const [videoEnabled, setVideoEnabled] = useState<boolean>(true);
   const [videoId, setVideoId] = useState<string>();
-  const [resolution, setResolution] = useState<string>();
+  const [resolution, setResolution] = useState<string>("720p");
 
   const cleanup = useRef<Promise<unknown>>(Promise.resolve());
 
@@ -195,93 +107,47 @@ const StreamSelection: React.SFC<StreamSelectionProps> = ({ value, update }) => 
 
   useEffect(() => {
     setAudioEnabled(localStorage.getItem("audioEnabled") != "false");
+    setAudioId(localStorage.getItem('audioInput') ?? undefined);
     setVideoEnabled(localStorage.getItem("videoEnabled") != "false");
-    setResolution(localStorage.getItem("resolution") ?? "720p");
+    setVideoId(localStorage.getItem('videoInput') ?? undefined);
+    setResolution(localStorage.getItem("resolution") ?? resolution);
   }, []);
 
-  // sanitize and restore ids
-
-  useEffect(() => {
-    setAudioId(sanitizeDeviceId(audioId, "audioInput", devices.audio));
-    setVideoId(sanitizeDeviceId(videoId, "videoInput", devices.video));
-  }, [devices]);
-
-  // update device list
-
-  useEffect(() => {
-    const doUpdate = () => {
-      updateDevices(setDevices);
-    };
-
-    mediaDevices.ondevicechange = doUpdate;
-    doUpdate();
-
-    return () => {
-      mediaDevices.ondevicechange = null;
-    };
-  }, []);
+  const sanitizedConfig = useMemo(() => {
+    return sanitizeInputConfiguration({
+      audio: {
+        deviceId: audioId,
+        enabled: audioEnabled,
+      },
+      video: {
+        deviceId: videoId,
+        enabled: videoEnabled,
+        resolution,
+      },
+    }, devices);
+  }, [audioEnabled, audioId, videoEnabled, videoId, resolution, devices]);
 
   // get stream
 
   useEffect(() => {
-    if(resolution == null) {
+    if(inputControl == null) {
       return;
     }
 
-    // create constraints
-
-    const resInfo = resolutions.get(resolution);
-    const resData = {
-      width: { ideal: resInfo?.dimensions[0] },
-      height: { ideal: resInfo?.dimensions[1] },
-    }
-
-    const constraints: MediaStreamConstraints = {
-      audio: getSourceConstraint(audioEnabled, audioId),
-      video: getSourceConstraint(videoEnabled, videoId, resData),
-    };
-
-    // wroth requesting?
-
-    if(constraints.audio === false && constraints.video === false) {
-      update(undefined);
-      return;
-    }
-
-    // actually create stream
-
-    const stream_p = cleanup.current.then(() => {
-      return Stream.createStream(constraints);
-    });
-
-    update(stream_p);
-
-    // workaround because device list gets more detailed after guM
-
-    if(devices.audio != null && devices.audio[0]?.label === "") {
-      stream_p.then(() => {
-        updateDevices(setDevices);
-      })
-    }
-
-    // cleanup
-
-    return () => {
-      cleanup.current = stream_p.then((stream) => stream.stop());
-    }
-  }, [audioId, audioEnabled, videoId, videoEnabled, resolution]);
+    inputControl.configureStream(sanitizedConfig);
+  }, [inputControl, sanitizedConfig]);
 
   // actual render
 
   return <>
     <div>
       <Switch checked={audioEnabled} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAudioEnabled(e.target.checked)} label="Audio" />
-      <DeviceSelect disabled={!audioEnabled} value={audioId} update={setAudioId} devices={devices.audio} storageKey="audioInput" deviceName="Microphone" />
+      <DeviceSelect disabled={!audioEnabled} value={sanitizedConfig.audio.deviceId} update={setAudioId} devices={devices?.audio} storageKey="audioInput" deviceName="Microphone" />
     </div>
     <br/>
     <div>
       <Switch checked={videoEnabled} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setVideoEnabled(e.target.checked)} label="Video" />
-      <DeviceSelect disabled={!videoEnabled} value={videoId} update={setVideoId} devices={devices.video} storageKey="videoInput" deviceName="Camera" />
+      <DeviceSelect disabled={!videoEnabled} value={sanitizedConfig.video.deviceId} update={setVideoId} devices={devices?.video} storageKey="videoInput" deviceName="Camera" />
       <ResolutionSelect disabled={!videoEnabled} value={resolution} update={setResolution} />
     </div>
   </>;
@@ -289,7 +155,8 @@ const StreamSelection: React.SFC<StreamSelectionProps> = ({ value, update }) => 
 
 export const RoomEntrance: React.SFC = () => {
   const [name, setName] = useState(localStorage.getItem("name") || createName());
-  const [stream, setStream] = useState<Promise<Stream>>();
+  const streamPromise = useInputStreamPromise();
+  const stream = usePromiseResult(streamPromise);
   const connect = useRoomConnect();
 
   const click = useCallback(() => {
@@ -298,13 +165,7 @@ export const RoomEntrance: React.SFC = () => {
 
     localStorage.setItem("name", name);
 
-    if(stream != null) {
-      stream.then((s) => {
-        connect(name, s.clone());
-      });
-    } else {
-      connect(name, stream);
-    }
+    connect(name);
   }, [name, stream]);
 
   return <Dialog open={true} onClose={() => null} preventOutsideDismiss>
@@ -317,7 +178,7 @@ export const RoomEntrance: React.SFC = () => {
       </div>
       <br/>
       <br/>
-      <StreamSelection value={stream} update={setStream} />
+      <StreamSelection />
     </DialogContent>
     <DialogActions>
       <DialogButton onClick={click} action="accept" isDefaultAction>Join</DialogButton>
