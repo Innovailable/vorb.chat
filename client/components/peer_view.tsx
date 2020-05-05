@@ -237,6 +237,11 @@ export const RemotePeerDisplay: React.SFC<{ peer: RemotePeer }> = ({ peer }) => 
   const stream = usePeerStream(peer);
   const screenshare = usePeerStream(peer, 'screenshare');
   const screenshareActive = useStreamActive(screenshare);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const handleFullscreen = useCallback(() => {
+    wrapperRef.current?.requestFullscreen();
+  }, []);
 
   let streamView: React.ReactNode;
 
@@ -251,7 +256,7 @@ export const RemotePeerDisplay: React.SFC<{ peer: RemotePeer }> = ({ peer }) => 
     streamView = <StreamVideo className="user_stream_main" stream={stream} />;
   }
 
-  return <div className="user_view">
+  return <div className="user_view" onDoubleClick={handleFullscreen} ref={wrapperRef}>
     {streamView}
     <div className="user_buttons">
       <VolumeInfo stream={stream} />
