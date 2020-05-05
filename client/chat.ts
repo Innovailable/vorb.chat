@@ -1,6 +1,6 @@
 import { Room, RemotePeer, DataChannel } from 'rtc-lib';
-import { EventEmitter } from 'events';
 import { encode, decode } from "@msgpack/msgpack";
+import * as Emittery from 'emittery';
 
 const CHAT_CHANNEL = 'chat';
 
@@ -55,7 +55,11 @@ export type Message = IncomingMessage | OutgoingMessage | StatusMessage;
 
 type OutstandingCb = () => void;
 
-export class ChatPeer extends EventEmitter {
+interface ChatPeerEvents {
+	text: string;
+}
+
+export class ChatPeer extends Emittery.Typed<ChatPeerEvents> {
   channel_p: Promise<DataChannel>;
   name: string;
   readonly outstanding = new Map<number,OutstandingCb>();
@@ -134,7 +138,11 @@ export class ChatPeer extends EventEmitter {
   }
 }
 
-export class Chat extends EventEmitter {
+interface ChatEvents {
+  messagesChanged: Array<Message>;
+}
+
+export class Chat extends Emittery.Typed<ChatEvents> {
   readonly peers = new Map<string,ChatPeer>();
   readonly old_names = new Map<string,string>();
   readonly messages = Array<Message>();
@@ -185,11 +193,11 @@ export class Chat extends EventEmitter {
       peer.sendText(text)
         .then(() => {
           message.states[id] = SendState.Sent;
-          this.emit("messages_changed");
+          this.emit("messagesChanged", this.messages);
         })
         .catch((err) => {
           message.states[id] = SendState.Failed;
-          this.emit("messages_changed");
+          this.emit("messagesChanged", this.messages);
         });
     }
 
@@ -198,7 +206,7 @@ export class Chat extends EventEmitter {
 
   private addMessage(message: Message) {
     this.messages.push(message);
-    this.emit("messages_changed");
+    this.emit("messagesChanged", this.messages);
   }
 
   private addPeer(remote_peer: RemotePeer, id: string) {

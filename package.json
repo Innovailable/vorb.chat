@@ -54,6 +54,7 @@
     "@types/react-router-dom": "^5.1.3",
     "classnames": "^2.2.6",
     "core-js": "^3.6.4",
+    "emittery": "^0.6.0",
     "feather": "0.0.6",
     "feather-icons": "^4.28.0",
     "fibers": "^4.0.2",
