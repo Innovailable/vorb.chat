@@ -63,6 +63,8 @@ export const Footer: React.SFC = () => {
   return <div className="footer">
     {modalView}
     <div className="links">
+      An open source project by <a href="https://innovailable.eu">Innovailable</a>
+      &nbsp;|&nbsp;
       <a href="#" onClick={handlePrivacy}>Privacy Policy</a>
       &nbsp;|&nbsp;
       <a href="#" onClick={handleImprint}>Imprint</a>
