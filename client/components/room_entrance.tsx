@@ -167,7 +167,7 @@ export const RoomEntrance: React.SFC = () => {
     connect(name);
   }, [name, connect]);
 
-  return <Dialog open={true} onClose={() => null} preventOutsideDismiss>
+  return <Dialog open={true} preventOutsideDismiss>
     <DialogTitle>Select Devices</DialogTitle>
     <DialogContent>
       <TextInput label="Name" value={name} update={setName} />

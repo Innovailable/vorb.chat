@@ -34,7 +34,6 @@ export const useRoomConnect = () => {
     const local = room.local;
     local.status("name", name);
 
-
     room.connect().catch((err) => {
       console.log(err);
     });
@@ -188,7 +187,6 @@ export const useChatMessages = () => {
 
 export const useChatTextSend = () => {
   const chat = useChat();
-  console.log(chat);
 
   return useCallback((text: string) => {
     if(chat == null) {

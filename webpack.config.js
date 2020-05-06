@@ -45,6 +45,20 @@ module.exports = (env="production") => {
                         'sass-loader',
                     ],
                 },
+                {
+                    test: /\.md$/,
+                    use: [
+                        {
+                            loader: "html-loader"
+                        },
+                        {
+                            loader: "markdown-loader",
+                            options: {
+                                /* your options here */
+                            }
+                        }
+                    ]
+                },
             ],
         },
         devtool: production ? "source-map" : 'inline-source-map',

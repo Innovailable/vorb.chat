@@ -15,6 +15,7 @@ import { RTCRoom, useRoom, useRoomState, useRoomPeers, useChatTextSend,  } from 
 import { LocalPeerDisplay, RemotePeerDisplay } from './peer_view';
 import { MessageList } from './message_list';
 import { RoomEntrance } from './room_entrance';
+import { Footer } from './footer';
 
 const SelfContainer: React.SFC = () => {
   const room = useRoom();
@@ -101,16 +102,14 @@ export const Room: React.SFC<RoomProps> = (props) => {
       <div className="content">
         <div className="stage">
           <UserList />
-	     </div>
-       <div className="sidebar">
-         <SelfContainer />
-	       <MessageList />
-	       <ChatInput />
-	      </div>
-     </div>
-     <div className="footer">
-	     <span>Innovailable ist toll</span>
-     </div>
-   </div>
-  </RTCRoom>
+        </div>
+        <div className="sidebar">
+          <SelfContainer />
+          <MessageList />
+          <ChatInput />
+        </div>
+      </div>
+      <Footer />
+    </div>
+  </RTCRoom>;
 }

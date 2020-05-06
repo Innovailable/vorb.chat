@@ -241,3 +241,16 @@ a, a.visited {
 	background-color: rgba(200, 200, 200, 0.8);
 	border: 1px solid #555;
 }
+
+.footer {
+  .links {
+    text-align: center;
+  }
+
+  .mdc-dialog .mdc-dialog__surface {
+    max-width: 70em;
+    width: 80vw;
+    height: 80vh;
+  }
+}
+
