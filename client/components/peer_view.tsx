@@ -75,6 +75,7 @@ const useStreamVolume = (stream: Stream | undefined) => {
 
   useAnimationFrameLoop(() => {
     if(processorRef.current == null) {
+      setVolume(0);
       return;
     }
 
@@ -82,7 +83,7 @@ const useStreamVolume = (stream: Stream | undefined) => {
   });
 
   useEffect(() => {
-    if(stream == null) {
+    if(stream == null || stream.getTracks('audio').length === 0) {
       return;
     }
 
@@ -203,7 +204,7 @@ export const StreamVideo: React.SFC<StreamVideoProps> = ({ stream, ...other }) =
     return () => {
       ve.clear();
     };
-  }, [stream, video.current]);
+  }, [stream]);
 
   return <video autoPlay {...other} ref={video} />
 }

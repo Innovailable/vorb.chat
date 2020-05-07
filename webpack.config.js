@@ -1,3 +1,4 @@
+const webpack = require('webpack');
 const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
 
@@ -83,5 +84,11 @@ module.exports = (env="production") => {
             historyApiFallback: true,
             port: 9000,
         },
+        plugins: [
+            new webpack.EnvironmentPlugin([
+                'UWP_SIGNALING',
+                'UWP_STUN',
+            ]),
+        ],
     }
 }

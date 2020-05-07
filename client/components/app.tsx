@@ -14,6 +14,12 @@ import '@rmwc/button/styles';
 import { RTCSignaling, useSignalingState } from './rtc_signaling';
 import { Room } from './room';
 
+const SIGNALING_ADDRESS = process.env.UWP_SIGNALING ?? "wss://calling.innovailable.eu";
+
+const SIGNALING_OPTIONS = {
+  stun: process.env.UWP_STUN ?? "stun:innovailable.eu",
+};
+
 const RoomRoute: React.SFC<{}> = () => {
   const { room_name } = useParams();
   if(!room_name){
@@ -59,7 +65,7 @@ export const App: React.SFC = () => {
       secondary: 'green'
     }}>
     <div className="center_wrapper">
-      <RTCSignaling address="wss://calling.innovailable.eu">
+      <RTCSignaling address={SIGNALING_ADDRESS} options={SIGNALING_OPTIONS}>
         <ConnectionHandler>
           <Switch>
             <Route path="/c/:room_name">

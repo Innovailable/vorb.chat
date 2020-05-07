@@ -3,10 +3,6 @@ import { createContext, useContext, useEffect, useState } from 'react';
 
 import { Calling, WebSocketChannel } from 'rtc-lib';
 
-const DEFAULT_OPTIONS = {
-  stun: "stun:innovailable.eu",
-}
-
 interface CallingContextState {
   calling?: Calling;
 }
@@ -37,14 +33,14 @@ export const useSignalingState = () => {
 
 interface RTCSignalingProps {
   address: string;
-  options?: Record<string,any>
+  options: Record<string,any>
 }
 
 export const RTCSignaling: React.SFC<RTCSignalingProps> = ({ address, options, children }) => {
   const [calling, setCalling] = useState<Calling>();
   useEffect(() => {
     const channel = new WebSocketChannel(address);
-    const calling = new Calling(channel, options || DEFAULT_OPTIONS);
+    const calling = new Calling(channel, options);
 
     setCalling(calling);
 

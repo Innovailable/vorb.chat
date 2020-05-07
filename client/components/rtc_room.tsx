@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 
 import { CallingRoom, Stream, Peer, RemotePeer } from 'rtc-lib';
 import { Chat, Message } from '../chat';
-import { InputControl } from '../input_control';
+import { InputControl, InputConfiguration, TrackKind, defaultResolution } from '../input_control';
 
 import { useSignaling } from './rtc_signaling';
 import { DeviceMapData } from '../device_map';
@@ -198,7 +198,7 @@ export const useChatTextSend = () => {
   }, [chat]);
 }
 
-export const useInputDevices = () => {
+export const useInputDevices = (kind: TrackKind) => {
   const [devices, setDevices] = useState<DeviceMapData>();
   const input = useInputControl();
 
@@ -216,9 +216,63 @@ export const useInputDevices = () => {
     };
   }, [input]);
 
-  return devices;
-}
+  if(devices != null) {
+    return devices[kind];
+  } else {
+    return undefined;
+  }
+};
 
+export const useInputConfiguration = () => {
+  const [config, setConfig] = useState<InputConfiguration>();
+  const input = useInputControl();
+
+  useEffect(() => {
+    if(input == null) {
+      setConfig(undefined);
+      return;
+    }
+
+    setConfig(input.getConfiguration());
+    input.on('configurationChanged', setConfig);
+
+    return () => {
+      input.off('configurationChanged', setConfig);
+    };
+  }, [input]);
+
+  return config;
+};
+
+export const useTrackDeviceId = (kind: TrackKind) => {
+  const config = useInputConfiguration();
+
+  if(config == null) {
+    return undefined;
+  }
+
+  return config[kind].deviceId;
+};
+
+export const useTrackEnabled = (kind: TrackKind) => {
+  const config = useInputConfiguration();
+
+  if(config == null) {
+    return false;
+  }
+
+  return config[kind].enabled;
+};
+
+export const useResolution = () => {
+  const config = useInputConfiguration();
+
+  if(config == null) {
+    return defaultResolution;
+  }
+
+  return config.video.resolution;
+};
 
 export const useInputStreamPromise = () => {
   const [stream, setStream] = useState<Promise<Stream> | undefined>();

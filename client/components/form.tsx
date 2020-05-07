@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Button } from '@rmwc/button';
 import '@rmwc/button/styles';
 
-import { TextField, TextFieldProps } from '@rmwc/textfield';
+import { TextField, TextFieldProps, TextFieldHTMLProps } from '@rmwc/textfield';
 import '@rmwc/textfield/styles';
 
 import classNames from 'classnames';
@@ -25,7 +25,7 @@ export class TextArea extends React.PureComponent<TextAreaProps> {
   }
 }
 
-interface TextInputProps extends TextFieldProps {
+interface TextInputProps extends TextFieldHTMLProps {
   value?: string;
   update: (data: string) => void;
   type?: never;

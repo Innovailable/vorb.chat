@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
 import { Stream } from 'rtc-lib';
-import { useRoomConnect, useInputDevices, useInputControl, useInputStreamPromise } from './rtc_room';
+import { useRoomConnect, useInputDevices, useInputControl, useInputStreamPromise, useInputConfiguration, useResolution, useTrackDeviceId, useTrackEnabled } from './rtc_room';
 import { StreamVideo } from './peer_view';
 import { TextInput, SimpleButton } from './form';
 
@@ -12,55 +12,60 @@ import { fill_audio_context_pool } from '../audio_context_pool';
 
 import { Dialog, DialogTitle, DialogContent, DialogActions, DialogButton } from '@rmwc/dialog';
 import '@rmwc/dialog/styles';
-import { Switch } from '@rmwc/switch';
+import { Switch, SwitchProps } from '@rmwc/switch';
 import '@rmwc/switch/styles';
 import { Select, SelectProps } from '@rmwc/select';
 import '@rmwc/select/styles';
-import { resolutions, sanitizeInputConfiguration } from '../input_control';
+import { resolutions, sanitizeInputConfiguration, ResolutionKey, TrackKind } from '../input_control';
+
+const DEVICE_NAMES = {
+  audio: 'Microphone',
+  video: 'Camera',
+};
 
 interface ResolutionSelectProps extends SelectProps {
-  value?: string;
-  update: (data: string) => void;
 }
 
-const ResolutionSelect: React.SFC<ResolutionSelectProps> = (props) => {
-  const { update, ...other } = props;
+const ResolutionSelect: React.SFC<ResolutionSelectProps> = (other) => {
+  const control = useInputControl();
+  const resolution = useResolution();
 
   const changeCb = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    localStorage.setItem("resolution", e.target.value);
-    update(e.target.value);
-  }, [update]);
+    if(control == null) {
+      return;
+    }
 
-  const options = Array.from(resolutions.entries(), ([id, res]) => {
+    control.setResolution(e.target.value as ResolutionKey);
+  }, [control]);
+
+  const options = Object.entries(resolutions).map(([id, res]) => {
     const [width, height] = res.dimensions;
     return <option key={id} value={id}>{res.name} ({width}x{height})</option>
   });
 
-  return <Select label="Preferred Resolution" onChange={changeCb} {...other}>
+  return <Select label="Preferred Resolution" value={resolution} onChange={changeCb} {...other}>
     {options}
   </Select>
 };
 
-interface DeviceMap {
-  audio: MediaDeviceInfo[];
-  video: MediaDeviceInfo[];
-}
-
 interface DeviceSelectProps extends SelectProps {
-  value?: string;
-  update: (data: string) => void;
-  devices?: MediaDeviceInfo[];
-  storageKey: string;
-  deviceName: string;
+  kind: TrackKind;
 }
 
-const DeviceSelect: React.SFC<DeviceSelectProps> = (props) => {
-  let { value, update, devices, storageKey, deviceName, disabled, ...other } = props;
+const DeviceSelect: React.SFC<DeviceSelectProps> = ({ kind, disabled, ...other }) => {
+  const control = useInputControl();
+  const deviceId = useTrackDeviceId(kind);
+  const devices = useInputDevices(kind);
+
+  const deviceName = DEVICE_NAMES[kind];
 
   const onChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    localStorage.setItem(storageKey, e.target.value);
-    update(e.target.value);
-  }, [update]);
+    if(control == null) {
+      return;
+    }
+
+    control.setDeviceId(kind, e.target.value);
+  }, [control]);
 
   let options: React.ReactNode;
 
@@ -82,73 +87,49 @@ const DeviceSelect: React.SFC<DeviceSelectProps> = (props) => {
     placeholder = `No ${deviceName.toLowerCase()} found`;
   }
 
-  return <Select label={deviceName} placeholder={placeholder} {...other} disabled={disabled} value={value} onChange={onChange}>
+  return <Select label={deviceName} placeholder={placeholder} {...other} disabled={disabled} value={deviceId} onChange={onChange}>
     {options}
   </Select>
+}
+
+interface DeviceEnabledSwitchProps extends SwitchProps {
+  kind: TrackKind;
+}
+
+const DeviceEnabledSwitch: React.SFC<DeviceEnabledSwitchProps> = ({ kind, ...other }) => {
+  const control = useInputControl();
+  const enabled = useTrackEnabled(kind);
+
+  const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if(control == null) {
+      return;
+    }
+
+    control.setDeviceEnabled(kind, e.target.checked);
+  }, [control]);
+
+  return <Switch checked={enabled} onChange={onChange} {...other} />
 }
 
 interface StreamSelectionProps {
 }
 
 const StreamSelection: React.SFC<StreamSelectionProps> = ({ }) => {
-  const inputControl = useInputControl();
-  const devices = useInputDevices();
-  const [audioEnabled, setAudioEnabled] = useState<boolean>(true);
-  const [audioId, setAudioId] = useState<string>();
-  const [videoEnabled, setVideoEnabled] = useState<boolean>(true);
-  const [videoId, setVideoId] = useState<string>();
-  const [resolution, setResolution] = useState<string>("720p");
-
-  const cleanup = useRef<Promise<unknown>>(Promise.resolve());
-
-  // TODO save enabled/disabled
-
-  // restore from storage
-
-  useEffect(() => {
-    setAudioEnabled(localStorage.getItem("audioEnabled") != "false");
-    setAudioId(localStorage.getItem('audioInput') ?? undefined);
-    setVideoEnabled(localStorage.getItem("videoEnabled") != "false");
-    setVideoId(localStorage.getItem('videoInput') ?? undefined);
-    setResolution(localStorage.getItem("resolution") ?? resolution);
-  }, []);
-
-  const sanitizedConfig = useMemo(() => {
-    return sanitizeInputConfiguration({
-      audio: {
-        deviceId: audioId,
-        enabled: audioEnabled,
-      },
-      video: {
-        deviceId: videoId,
-        enabled: videoEnabled,
-        resolution,
-      },
-    }, devices);
-  }, [audioEnabled, audioId, videoEnabled, videoId, resolution, devices]);
-
-  // get stream
-
-  useEffect(() => {
-    if(inputControl == null) {
-      return;
-    }
-
-    inputControl.configureStream(sanitizedConfig);
-  }, [inputControl, sanitizedConfig]);
+  const audioEnabled = useTrackEnabled('audio');
+  const videoEnabled = useTrackEnabled('video');
 
   // actual render
 
   return <>
     <div>
-      <Switch checked={audioEnabled} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAudioEnabled(e.target.checked)} label="Audio" />
-      <DeviceSelect disabled={!audioEnabled} value={sanitizedConfig.audio.deviceId} update={setAudioId} devices={devices?.audio} storageKey="audioInput" deviceName="Microphone" />
+      <DeviceEnabledSwitch kind="audio" label="Audio" />
+      <DeviceSelect disabled={!audioEnabled} kind="audio" />
     </div>
     <br/>
     <div>
-      <Switch checked={videoEnabled} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setVideoEnabled(e.target.checked)} label="Video" />
-      <DeviceSelect disabled={!videoEnabled} value={sanitizedConfig.video.deviceId} update={setVideoId} devices={devices?.video} storageKey="videoInput" deviceName="Camera" />
-      <ResolutionSelect disabled={!videoEnabled} value={resolution} update={setResolution} />
+      <DeviceEnabledSwitch kind="video" label="Video" />
+      <DeviceSelect disabled={!videoEnabled} kind="video" />
+      <ResolutionSelect disabled={!videoEnabled} />
     </div>
   </>;
 }
