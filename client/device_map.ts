@@ -32,8 +32,6 @@ export class DeviceMapHandler extends Emittery.Typed<DeviceMapHandlerEvents> {
 
   constructor() {
     super();
-
-    this.load();
   }
 
   close() {
