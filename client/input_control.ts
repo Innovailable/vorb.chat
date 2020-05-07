@@ -120,7 +120,7 @@ interface InputControlEvents {
 export class InputControl extends Emittery.Typed<InputControlEvents> {
   protected deviceMapHandler = new DeviceMapHandler();
   protected configuration: InputConfiguration;
-  protected appliedConfiguration!: InputConfiguration;
+  protected appliedConfiguration?: InputConfiguration;
   protected stream?: Promise<Stream>;
   protected screenshare?: Promise<Stream>
 
@@ -128,7 +128,6 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
     super();
 
     this.configuration = this.load();
-    this.applyConfiguration();
 
     this.deviceMapHandler.on('devicesChanged', (devices) => {
       this.emit('devicesChanged', devices);
@@ -138,6 +137,16 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
     this.on('configurationChanged', () => {
       this.applyConfiguration();
     });
+
+    this.init();
+  }
+
+  private async init() {
+    try {
+      await this.deviceMapHandler.load();
+    } catch {}
+
+    this.applyConfiguration();
   }
 
   private load(): InputConfiguration {
@@ -246,6 +255,10 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
       audio: getSourceConstraint(config.audio),
       video: getSourceConstraint(config.video, resData),
     };
+
+    if(this.stream) {
+      await stopStream(this.stream);
+    }
 
     const stream = await Stream.createStream(constraints);
 

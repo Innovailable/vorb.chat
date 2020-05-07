@@ -97,6 +97,10 @@ export class DeviceMapHandler extends Emittery.Typed<DeviceMapHandlerEvents> {
     return devices;
   }
 
+  loaded() {
+    return this.devices == null;
+  }
+
   fullyLoaded() {
     if(this.devices == null) {
       return false;
