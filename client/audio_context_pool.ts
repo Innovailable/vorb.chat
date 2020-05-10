@@ -2,6 +2,8 @@ import adapter from 'webrtc-adapter';
 
 // TODO workaround for https://bugs.chromium.org/p/chromium/issues/detail?id=835767
 
+//@ts-ignore
+const AudioContext = window.AudioContext || window.webkitAudioContext;
 const pool = Array<AudioContext>();
 
 export function get_audio_context(): AudioContext {
