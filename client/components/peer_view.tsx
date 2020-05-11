@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 
+import { Button } from '@rmwc/button';
+
 import { Peer, RemotePeer, LocalPeer, Stream, MediaDomElement } from 'rtc-lib';
 import { VolumeProcessor } from '../volume';
 
@@ -136,17 +138,17 @@ export const VolumeInfo: React.SFC<{ stream?: Stream }> = ({ stream }) => {
     backgroundColor: `rgba(200, 200, 200, ${opacity})`,
   };
 
-  return <SimpleButton clicked={toggleMuted} className="user_input_btn" style={style}>
+  return <Button outlined onClick={toggleMuted} className="user_input_btn overlay_button" style={style}>
     <FeatherIcon icon={muted ? "mic-off" : "mic"} />
-  </SimpleButton>;
+  </Button>;
 }
 
 export const CamInfo: React.SFC<{ stream?: Stream }> = ({ stream }) => {
   const [muted, toggleMuted] = useStreamMute(stream, "video");
 
-  return <SimpleButton clicked={toggleMuted} className="user_input_btn">
+  return <Button outlined onClick={toggleMuted} className="user_input_btn overlay_button">
     <FeatherIcon icon={muted ? "video-off" : "video"} />
-  </SimpleButton>;
+  </Button>;
 }
 
 export const SecurityInfo: React.SFC<{ peer: RemotePeer }> = ({ peer }) => {
@@ -175,9 +177,9 @@ export const SecurityInfo: React.SFC<{ peer: RemotePeer }> = ({ peer }) => {
   }
 
   return <div className="key_wrapper">
-    <SimpleButton clicked={toggleShow} className="user_input_btn">
+    <Button outlined onClick={toggleShow} className="user_input_btn overlay_button">
       <FeatherIcon icon="key" />
-    </SimpleButton>
+    </Button>
     {display}
   </div>;
 }
@@ -216,9 +218,9 @@ export const ScreenshareButton: React.SFC = () => {
     input?.toggleScreenshare();
   }, [input]);
 
-  return <SimpleButton clicked={toggle}>
+  return <Button outlined className="overlay_button" onClick={toggle} >
       <FeatherIcon icon="share" />
-  </SimpleButton>
+  </Button>
 };
 
 export const LocalPeerDisplay: React.SFC<{ peer: LocalPeer }> = ({ peer }) => {
@@ -230,6 +232,7 @@ export const LocalPeerDisplay: React.SFC<{ peer: LocalPeer }> = ({ peer }) => {
       <VolumeInfo stream={stream} />
       <CamInfo stream={stream} />
       <ScreenshareButton />
+      <Button outlined className="overlay_button" type="button">You</Button>
     </div>
   </div>;
 }
@@ -262,7 +265,7 @@ export const RemotePeerDisplay: React.SFC<{ peer: RemotePeer }> = ({ peer }) => 
     <div className="user_buttons">
       <VolumeInfo stream={stream} />
       <SecurityInfo peer={peer} />
-      <span className="username_stream">{peer.status("name")}</span>
+      <Button outlined className="overlay_button" type="button">{peer.status("name")}</Button>
     </div>
   </div>;
 }
