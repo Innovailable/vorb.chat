@@ -26,7 +26,7 @@ export class VolumeProcessor {
       }
 
       const cur_volume = Math.sqrt(sum / buffer.length);
-      this.volume = Math.max(cur_volume, this.volume * 0.98);
+      this.volume = Math.max(cur_volume, this.volume * 0.985);
       this.called++;
     };
   }

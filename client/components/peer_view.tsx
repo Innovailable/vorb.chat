@@ -134,12 +134,23 @@ export const VolumeInfo: React.SFC<{ stream?: Stream }> = ({ stream }) => {
 
   const opacity = Math.min(volume * 5, 1.);
 
-  const style: React.CSSProperties = {
-    backgroundColor: `rgba(200, 200, 200, ${opacity})`,
-  };
+  let icon: string;
 
-  return <Button outlined onClick={toggleMuted} className="user_input_btn overlay_button" style={style}>
-    <FeatherIcon icon={muted ? "mic-off" : "mic"} />
+  if(muted) {
+    icon = 'volume-x';
+  } else {
+    console.log(volume);
+    if(volume < .15) {
+      icon = 'volume';
+    } else if(volume < .25) {
+      icon = 'volume-1';
+    } else {
+      icon = 'volume-2';
+    }
+  }
+
+  return <Button outlined onClick={toggleMuted} className="user_input_btn overlay_button">
+    <FeatherIcon icon={icon} />
   </Button>;
 }
 
