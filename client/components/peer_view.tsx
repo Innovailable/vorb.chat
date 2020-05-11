@@ -139,7 +139,6 @@ export const VolumeInfo: React.SFC<{ stream?: Stream }> = ({ stream }) => {
   if(muted) {
     icon = 'volume-x';
   } else {
-    console.log(volume);
     if(volume < .15) {
       icon = 'volume';
     } else if(volume < .25) {
