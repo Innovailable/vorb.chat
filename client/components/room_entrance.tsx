@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
 import { Stream } from 'rtc-lib';
-import { useRoomConnect, useInputDevices, useInputControl, useInputStreamPromise, useInputConfiguration, useResolution, useTrackDeviceId, useTrackEnabled } from './rtc_room';
+import { useRoomConnect, useInputDevices, useInputControl, useInputStream, useInputConfiguration, useResolution, useTrackDeviceId, useTrackEnabled } from './rtc_room';
 import { StreamVideo } from './peer_view';
 import { TextInput, SimpleButton } from './form';
 
@@ -136,7 +136,7 @@ const StreamSelection: React.SFC<StreamSelectionProps> = ({ }) => {
 
 export const RoomEntrance: React.SFC = () => {
   const [name, setName] = useState(localStorage.getItem("name") || createName());
-  const stream = useInputStreamPromise();
+  const stream = useInputStream();
   const connect = useRoomConnect();
 
   const click = useCallback(() => {

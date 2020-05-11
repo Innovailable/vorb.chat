@@ -8,6 +8,7 @@ import { InputControl, InputConfiguration, TrackKind, defaultResolution } from '
 import { useSignaling } from './rtc_signaling';
 import { DeviceMapData } from '../device_map';
 import { usePromiseResult } from './helper';
+import { StreamTransceiverTracker } from '../transceivers';
 
 interface RoomContextState {
   input?: InputControl;
@@ -23,7 +24,6 @@ export const useInputControl = () => useContext(RoomContext).input;
 
 export const useRoomConnect = () => {
   const room = useRoom();
-  const stream = useInputStreamPromise();
 
   return useCallback((name: string) => {
     if(room == null) {
@@ -80,44 +80,25 @@ export const RTCRoom: React.SFC<RTCRoomProps> = ({ name, children }) => {
     const input = new InputControl();
     setContext({ room, chat, input });
 
-    room.on('peer_joined', (peer: RemotePeer) => {
-      const stream = input.getStream();
+    room.local.addDataChannel('chat', {ordered: true});
 
-      // TODO make sure this never happens
-      if(stream) {
-        peer.addStream(stream);
-      }
+    const streamTracker = new StreamTransceiverTracker(input.getStream());
+    streamTracker.addToPeer(room.local);
 
-      peer.addStream('screenshare', new Stream(new MediaStream()), (createTransceiver) => {
-        const transceiver = createTransceiver('video', { direction: 'recvonly' });
+    input.on('streamChanged', (stream) => {
+      streamTracker.setStream(stream);
+    });
 
-        const update = async (screenshare: Promise<Stream> | undefined) => {
-          try {
-            if(screenshare != null) {
-              const stream = await screenshare;
-              transceiver.sender.replaceTrack(stream.getTracks('video')[0]);
-              transceiver.direction = 'sendrecv';
-            } else {
-              transceiver.sender.replaceTrack(null);
-              transceiver.direction = 'recvonly';
-            }
-          } catch(err) {
-            transceiver.sender.replaceTrack(null);
-            transceiver.direction = 'recvonly';
-          }
+    const screenshareTracker = new StreamTransceiverTracker(input.getScreenshare(), new Set(['video']));
+    screenshareTracker.addToPeer(room.local, 'screenshare');
 
-          peer.negotiate();
-        };
+    input.on('screenshareChanged', (stream) => {
+      screenshareTracker.setStream(stream);
+    });
 
-        update(input.getScreenshare());
-        input.on('screenshareChanged', update);
-
-        peer.once('left', () => {
-          input.off('screenshareChanged', update);
-        });
-      });
-
-      peer.connect();
+    room.on('peer_joined', async (peer: RemotePeer) => {
+      await peer.connect();
+      console.log(peer.peer_connection.pc.getTransceivers());
     });
 
     return () => {
@@ -274,8 +255,8 @@ export const useResolution = () => {
   return config.video.resolution;
 };
 
-export const useInputStreamPromise = () => {
-  const [stream, setStream] = useState<Promise<Stream> | undefined>();
+export const useInputStream = () => {
+  const [stream, setStream] = useState<Stream | undefined>();
   const input = useInputControl();
 
   useEffect(() => {
@@ -293,10 +274,5 @@ export const useInputStreamPromise = () => {
   }, [input]);
 
   return stream;
-};
-
-export const useInputStream = () => {
-  const streamPromise = useInputStreamPromise();
-  return usePromiseResult(streamPromise);
 };
 

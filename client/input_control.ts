@@ -110,10 +110,53 @@ async function stopStream(streamPromise: Promise<Stream>) {
 
 export type TrackKind = 'audio' | 'video';
 
+interface StreamResolverEvents {
+  streamChanged: Stream | undefined;
+}
+
+class StreamResolver extends Emittery.Typed<StreamResolverEvents> {
+  stream: Stream | undefined;
+  promise: Promise<Stream> | undefined;
+
+  constructor(stream?: Promise<Stream>) {
+    super();
+
+    this.setPromise(stream);
+  }
+
+  setPromise(promise: Promise<Stream> | undefined) {
+    this.promise = promise;
+
+    if(promise == null) {
+      this.stream = undefined;
+      this.emit('streamChanged', undefined);
+      return;
+    }
+
+    promise
+      .then((stream) => {
+        if(this.promise !== promise) {
+          return;
+        }
+
+        this.stream = stream;
+        this.emit('streamChanged', stream);
+      })
+      .catch((err) => {
+        if(this.promise !== promise) {
+          return;
+        }
+
+        this.stream = undefined;
+        this.emit('streamChanged', undefined);
+      });
+  }
+}
+
 interface InputControlEvents {
   devicesChanged: DeviceMapData | undefined;
-  streamChanged: Promise<Stream> | undefined;
-  screenshareChanged: Promise<Stream> | undefined;
+  streamChanged: Stream | undefined;
+  screenshareChanged: Stream | undefined;
   configurationChanged: InputConfiguration | undefined;
 }
 
@@ -121,13 +164,21 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
   protected deviceMapHandler = new DeviceMapHandler();
   protected configuration: InputConfiguration;
   protected appliedConfiguration?: InputConfiguration;
-  protected stream?: Promise<Stream>;
-  protected screenshare?: Promise<Stream>
+  protected streamResolver = new StreamResolver();
+  protected screenshareResolver = new StreamResolver();
 
   constructor() {
     super();
 
     this.configuration = this.load();
+
+    this.streamResolver.on('streamChanged', (stream) => {
+      this.emit('streamChanged', stream);
+    });
+
+    this.screenshareResolver.on('streamChanged', (stream) => {
+      this.emit('screenshareChanged', stream);
+    });
 
     this.deviceMapHandler.on('devicesChanged', (devices) => {
       this.emit('devicesChanged', devices);
@@ -202,20 +253,18 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
     this.appliedConfiguration = config;
 
     if(!config.audio.enabled && !config.video.enabled) {
-      if(this.stream) {
-        stopStream(this.stream);
-      }
+      this.stopStream();
 
-      this.setStream(undefined);
+      this.streamResolver.setPromise(undefined);
       return;
     }
 
     try {
       const stream = this.createStream(config);
-      this.setStream(stream);
+      this.streamResolver.setPromise(stream);
     } catch(err) {
       console.log('Unable to get user media');
-      this.setStream(undefined);
+      this.streamResolver.setPromise(undefined);
     }
   }
 
@@ -256,9 +305,7 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
       video: getSourceConstraint(config.video, resData),
     };
 
-    if(this.stream) {
-      await stopStream(this.stream);
-    }
+    await this.stopStream();
 
     const stream = await Stream.createStream(constraints);
 
@@ -269,36 +316,37 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
     return stream;
   }
 
-  getStream() {
-    return this.stream;
+  async stopStream() {
+    if(this.streamResolver.promise) {
+      await stopStream(this.streamResolver.promise);
+    }
   }
 
-  private setStream(stream: Promise<Stream> | undefined) {
-    this.stream = stream;
-    this.emit('streamChanged', stream);
+  getStream() {
+    return this.streamResolver.stream;
   }
 
   async startScreenshare() {
-    if(this.screenshare != null) {
+    if(this.screenshareResolver.promise != null) {
       return;
     }
 
     // TODO remove once fixed in typescript
     // @ts-ignore
     const screenshare: Promise<Stream> = navigator.mediaDevices.getDisplayMedia().then((ms) => new Stream(ms));
-    this.setScreenshare(screenshare);
+    this.screenshareResolver.setPromise(screenshare);
   }
 
   async stopScreenshare() {
-    if(this.screenshare) {
-      const { screenshare } = this;
-      this.setScreenshare(undefined);
+    if(this.screenshareResolver.promise != null) {
+      const screenshare = this.screenshareResolver.promise;
+      this.screenshareResolver.setPromise(undefined);
       await stopStream(screenshare);
     }
   }
 
   toggleScreenshare() {
-    if(this.screenshare == null) {
+    if(this.screenshareResolver.promise == null) {
       return this.startScreenshare();
     } else {
       return this.stopScreenshare();
@@ -306,24 +354,14 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
   }
 
   getScreenshare() {
-    return this.screenshare;
-  }
-
-  private setScreenshare(screenshare: Promise<Stream> | undefined) {
-    this.screenshare = screenshare;
-    this.emit('screenshareChanged', screenshare);
+    return this.screenshareResolver.stream;
   }
 
   close() {
-    if(this.stream != null) {
-      stopStream(this.stream);
-      this.stream = undefined;
-    }
+    this.stopStream();
+    this.streamResolver.setPromise(undefined);
 
-    if(this.screenshare != null) {
-      stopStream(this.screenshare);
-      this.stream = undefined;
-    }
+    this.stopScreenshare();
 
     this.deviceMapHandler.close();
   }
