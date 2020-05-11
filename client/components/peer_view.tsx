@@ -124,6 +124,27 @@ const useStreamActive = (stream: Stream | undefined) => {
   return active;
 }
 
+const usePeerName = (peer: LocalPeer | RemotePeer) => {
+  const [peerName, setPeerName] = useState("");
+
+  useEffect(() => {
+    console.log("does this shit ever happen?");
+    setPeerName(peer.status("name"));
+    const changeCb = () => {
+      setPeerName(peer.status("name"));
+    }
+
+    peer.on('status_changed', changeCb);
+
+    return () => {
+      peer.removeListener("status_changed", changeCb);
+    }
+  }, [peer]);
+
+  return peerName;
+}
+
+
 export const VolumeInfo: React.SFC<{ stream?: Stream }> = ({ stream }) => {
   const [muted, toggleMuted] = useStreamMute(stream, "audio");
   const volume = useStreamVolume(stream);
@@ -235,6 +256,7 @@ export const ScreenshareButton: React.SFC = () => {
 
 export const LocalPeerDisplay: React.SFC<{ peer: LocalPeer }> = ({ peer }) => {
   const stream = useInputStream();
+  const peerName = usePeerName(peer);
 
   return <div className="user_view user_self">
     <StreamVideo muted stream={stream} />
@@ -242,7 +264,7 @@ export const LocalPeerDisplay: React.SFC<{ peer: LocalPeer }> = ({ peer }) => {
       <VolumeInfo stream={stream} />
       <CamInfo stream={stream} />
       <ScreenshareButton />
-      <Button outlined className="overlay_button" type="button">You</Button>
+      <Button outlined className="overlay_button" type="button">{peerName}</Button>
     </div>
   </div>;
 }
@@ -252,6 +274,8 @@ export const RemotePeerDisplay: React.SFC<{ peer: RemotePeer }> = ({ peer }) => 
   const screenshare = usePeerStream(peer, 'screenshare');
   const screenshareActive = useStreamActive(screenshare);
   const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const peerName = usePeerName(peer);
 
   const handleFullscreen = useCallback(() => {
     wrapperRef.current?.requestFullscreen();
@@ -275,7 +299,7 @@ export const RemotePeerDisplay: React.SFC<{ peer: RemotePeer }> = ({ peer }) => 
     <div className="user_buttons">
       <VolumeInfo stream={stream} />
       <SecurityInfo peer={peer} />
-      <Button outlined className="overlay_button" type="button">{peer.status("name")}</Button>
+      <Button outlined className="overlay_button" type="button">{peerName}</Button>
     </div>
   </div>;
 }
