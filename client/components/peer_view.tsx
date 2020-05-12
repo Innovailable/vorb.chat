@@ -5,6 +5,7 @@ import { Button } from '@rmwc/button';
 
 import { Peer, RemotePeer, LocalPeer, Stream, MediaDomElement } from 'rtc-lib';
 import { VolumeProcessor } from '../volume';
+import useMergedRef from '@react-hook/merged-ref'
 
 import { Elevation } from '@rmwc/elevation';
 import '@rmwc/elevation/styles';
@@ -14,6 +15,7 @@ import { SimpleButton } from './form';
 import { useAnimationFrameLoop } from './animation';
 import { usePromiseResult } from './helper';
 import { useInputStream, useInputControl } from './rtc_room';
+import { useVideoScaler } from './video_scale';
 
 const usePeerStream = (peer: Peer, name?: string) => {
   const [streamPromise, setStreamPromise] = useState<Promise<Stream>>();
@@ -219,11 +221,14 @@ interface StreamVideoProps extends React.HTMLProps<HTMLVideoElement> {
   stream?: Peer | Stream | Promise<Stream>;
 }
 
-export const StreamVideo: React.SFC<StreamVideoProps> = ({ stream, ...other }) => {
-  const video = useRef<HTMLVideoElement>(null);
+export const StreamVideo = React.forwardRef<HTMLVideoElement,StreamVideoProps>(({ stream, ...other }, ref) => {
+  const ourRef = useRef<HTMLVideoElement>(null);
+  const mergedRef = useMergedRef(ourRef, ref);
+
+  console.log(ourRef);
 
   useEffect(() => {
-    if(video.current == null) {
+    if(ourRef.current == null) {
       console.log("Unable to access video element");
       return;
     }
@@ -232,15 +237,15 @@ export const StreamVideo: React.SFC<StreamVideoProps> = ({ stream, ...other }) =
       return;
     }
 
-    const ve = new MediaDomElement(video.current, stream);
+    const ve = new MediaDomElement(ourRef.current, stream);
 
     return () => {
       ve.clear();
     };
   }, [stream]);
 
-  return <video autoPlay {...other} ref={video} />
-}
+  return <video autoPlay {...other} ref={mergedRef} />
+});
 
 export const ScreenshareButton: React.SFC = () => {
   const input = useInputControl();
@@ -274,6 +279,9 @@ export const RemotePeerDisplay: React.SFC<{ peer: RemotePeer }> = ({ peer }) => 
   const screenshare = usePeerStream(peer, 'screenshare');
   const screenshareActive = useStreamActive(screenshare);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useVideoScaler(videoRef, wrapperRef, { tolerance: 8 });
 
   const peerName = usePeerName(peer);
 
@@ -285,21 +293,23 @@ export const RemotePeerDisplay: React.SFC<{ peer: RemotePeer }> = ({ peer }) => 
 
   if(screenshareActive) {
     streamView = <>
-      <StreamVideo className="user_stream_main" stream={screenshare} />
+      <StreamVideo className="user_stream_main" stream={screenshare} ref={videoRef} />
       <Elevation z={5} className="user_stream_pip">
         <StreamVideo stream={stream} />
       </Elevation>
     </>
   } else {
-    streamView = <StreamVideo className="user_stream_main" stream={stream} />;
+    streamView = <StreamVideo className="user_stream_main" stream={stream} ref={videoRef} />;
   }
 
-  return <div className="user_view" onDoubleClick={handleFullscreen} ref={wrapperRef}>
-    {streamView}
-    <div className="user_buttons">
-      <VolumeInfo stream={stream} />
-      <SecurityInfo peer={peer} />
-      <Button outlined className="overlay_button" type="button">{peerName}</Button>
+  return <div className="user_wrapper" ref={wrapperRef}>
+    <div className="user_view" onDoubleClick={handleFullscreen}>
+      {streamView}
+      <div className="user_buttons">
+        <VolumeInfo stream={stream} />
+        <SecurityInfo peer={peer} />
+        <Button outlined className="overlay_button" type="button">{peerName}</Button>
+      </div>
     </div>
   </div>;
 }

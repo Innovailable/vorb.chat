@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { useState, useCallback } from 'react';
 
+import * as classNames from 'classnames';
+
 import { Link } from 'react-router-dom';
 
 import { TextInput, TextArea, SimpleButton } from './form';
@@ -37,9 +39,11 @@ const UserList: React.SFC = () => {
     </React.Fragment>
   });
 
-  return <>
+  const className = classNames('stage', `stage_${peer_views.length}`);
+
+  return <div className={className}>
     {peer_views}
-  </>;
+  </div>;
 };
 
 const ChatInput: React.SFC = () => {
@@ -109,9 +113,7 @@ export const Room: React.SFC<RoomProps> = (props) => {
         <Link to="/"><h2>UWP - Home</h2></Link>
       </div>
       <div className="content">
-        <div className="stage">
-          <UserList />
-        </div>
+        <UserList />
         <div className="sidebar">
           <SelfContainer />
           <MessageList />
