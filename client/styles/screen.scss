@@ -48,7 +48,6 @@ a, a.visited {
 .user_view {
   display: inline-block;
   border: solid 1px black;
-  position: relative;
 }
 
 .user_buttons {
@@ -122,23 +121,28 @@ a, a.visited {
         justify-content: center;
         align-items: center;
 
-        .user_stream_main {
-          min-width: 2em;
-          min-height: 2em;
-          max-width: 100%;
-          max-height: 100%;
-        }
+        .user_view {
+          position: absolute;
 
-        .user_stream_pip {
-          video {
-            width: 100%;
+          .user_stream_main {
+            object-fit: cover;
+            min-width: 2em;
+            min-height: 2em;
+            max-width: 100%;
+            max-height: 100%;
           }
 
-          opacity: 80%;
-          position: absolute;
-          right: 5%;
-          top: 5%;
-          width: 20%;
+          .user_stream_pip {
+            video {
+              width: 100%;
+            }
+
+            opacity: 80%;
+            position: absolute;
+            right: 5%;
+            top: 5%;
+            width: 20%;
+          }
         }
       }
     }
@@ -154,6 +158,7 @@ a, a.visited {
         flex-basis: auto;
 
         .user_view {
+          position: relative;
           width: 100%;
           video {
             width: 100%;
@@ -296,5 +301,21 @@ a, a.visited {
 
 .stage_4 {
   grid-template-columns: repeat(2, 1fr);
+}
+
+.user_wrapper:fullscreen {
+  width: 100%;
+  height: 100%;
+
+  .user_view {
+    width: 100%;
+    height: 100%;
+
+    .user_stream_main {
+      object-fit: contain !important;
+      width: 100% !important;
+      height: 100% !important;
+    }
+  }
 }
 

@@ -97,8 +97,7 @@ export const RTCRoom: React.SFC<RTCRoomProps> = ({ name, children }) => {
     });
 
     room.on('peer_joined', async (peer: RemotePeer) => {
-      await peer.connect();
-      console.log(peer.peer_connection.pc.getTransceivers());
+      peer.connect();
     });
 
     return () => {

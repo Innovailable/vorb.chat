@@ -27,7 +27,6 @@ export class StreamTransceiverTracker extends Emittery.Typed<StreamTrackerEvents
 
   protected createTransceiverFactory(kind: TrackKind, dummyStream: Stream): StreamTransceiverFactory {
     return (createTransceiver) => {
-      console.log('creating', kind);
       const track = this.stream?.getTracks(kind)[0];
 
       const transceiver = createTransceiver(track ?? kind, {
@@ -35,13 +34,8 @@ export class StreamTransceiverTracker extends Emittery.Typed<StreamTrackerEvents
         streams: [dummyStream.stream],
       });
 
-      console.log('transceiver', transceiver);
-      console.log(transceiver.sender.track, transceiver.direction);
-
       const update = (stream: Stream | undefined) => {
         const track = stream?.getTracks(kind)[0] ?? null;
-
-        console.log('updating track', track);
 
         if(track === transceiver.sender.track) {
           return;
@@ -54,9 +48,8 @@ export class StreamTransceiverTracker extends Emittery.Typed<StreamTrackerEvents
       this.on('streamChanged', update);
 
       return () => {
-        console.log('cleaning up', kind);
         this.off('streamChanged', update);
-      }
+      };
     }
   }
 

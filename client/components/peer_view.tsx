@@ -130,7 +130,6 @@ const usePeerName = (peer: LocalPeer | RemotePeer) => {
   const [peerName, setPeerName] = useState("");
 
   useEffect(() => {
-    console.log("does this shit ever happen?");
     setPeerName(peer.status("name"));
     const changeCb = () => {
       setPeerName(peer.status("name"));
@@ -225,8 +224,6 @@ export const StreamVideo = React.forwardRef<HTMLVideoElement,StreamVideoProps>((
   const ourRef = useRef<HTMLVideoElement>(null);
   const mergedRef = useMergedRef(ourRef, ref);
 
-  console.log(ourRef);
-
   useEffect(() => {
     if(ourRef.current == null) {
       console.log("Unable to access video element");
@@ -278,15 +275,16 @@ export const RemotePeerDisplay: React.SFC<{ peer: RemotePeer }> = ({ peer }) => 
   const stream = usePeerStream(peer);
   const screenshare = usePeerStream(peer, 'screenshare');
   const screenshareActive = useStreamActive(screenshare);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
-  useVideoScaler(videoRef, wrapperRef, { tolerance: 8 });
+  const [scaleWrapperRef, videoRef] = useVideoScaler();
+
+  const fullscreenRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useMergedRef(scaleWrapperRef, fullscreenRef);
 
   const peerName = usePeerName(peer);
 
   const handleFullscreen = useCallback(() => {
-    wrapperRef.current?.requestFullscreen();
+    fullscreenRef.current?.requestFullscreen();
   }, []);
 
   let streamView: React.ReactNode;

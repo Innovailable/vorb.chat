@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 
 import * as elementResizeDetectorMaker from 'element-resize-detector';
 
@@ -9,50 +9,93 @@ export interface VideoScaleOptions {
 }
 
 const defaultVideoScaleOptions: VideoScaleOptions = {
-  tolerance: 0,
+  tolerance: 8,
   trim: 10,
 };
 
 var erd = elementResizeDetectorMaker({
-  strategy: "scroll",
+  strategy: "object",
 });
 
-export const useVideoScaler = (videoRef: React.RefObject<HTMLVideoElement>, wrapperRef: React.RefObject<HTMLElement>, options?: Partial<VideoScaleOptions>) => {
-  const appliedOptions: VideoScaleOptions = options != null ? { ...defaultVideoScaleOptions, ...options } : defaultVideoScaleOptions;
+class VideoScaler {
+  updateCb: () => void;
+  wrapper?: HTMLElement;
+  video?: HTMLVideoElement;
 
-  const wrapper = wrapperRef.current;
-  const video = videoRef.current;
+  constructor() {
+    this.updateCb = this.update.bind(this);
+  }
 
-  useEffect(() => {
-    if(video == null || wrapper == null) {
-      console.log('Unable to setup video scaler');
+  stop() {
+    this.setWrapper(undefined);
+    this.setVideo(undefined);
+  }
+
+  update() {
+    if(this.video == null || this.wrapper == null) {
+      console.log('not running scaler', this.video, this.wrapper);
       return;
     }
 
-    const adjustSize = () => {
-      const trimFactor = 1 - appliedOptions.tolerance / 100;
+    const baseWidth = this.video.videoWidth || 320;
+    const baseHeight = this.video.videoHeight || 240;
+    const maxWidth = this.wrapper.clientWidth - 8;
+    const maxHeight = this.wrapper.clientHeight - 8;
 
-      const baseWidth = video.videoWidth || 320;
-      const baseHeight = video.videoHeight || 240;
-      const maxWidth = wrapper.clientWidth - appliedOptions.tolerance;
-      const maxHeight = wrapper.clientHeight - appliedOptions.tolerance;
+    const ratio = baseWidth / baseHeight;
 
-      const ratio = baseWidth / baseHeight;
+    const calcWidth = Math.min(maxWidth, maxHeight * ratio);
+    const calcHeight = Math.min(maxHeight, maxWidth / ratio);
 
-      const calcWidth = Math.min(maxWidth, maxHeight * ratio);
-      const calcHeight = Math.min(maxHeight, maxWidth / ratio);
+    this.video.style.width = String(Math.floor(calcWidth));
+    this.video.style.height = String(Math.floor(calcHeight));
+  }
 
-      video.style.width = String(Math.floor(calcWidth));
-      video.style.height = String(Math.floor(calcHeight));
-    };
+  setVideo(video: HTMLVideoElement | undefined) {
+    if(this.video != null) {
+      this.video.removeEventListener('playing', this.updateCb);
+    }
 
-    adjustSize();
-    erd.listenTo(wrapper, adjustSize);
-    video.addEventListener('playing', adjustSize);
+    this.video = video;
 
+    if(this.video != null) {
+      this.update();
+      this.video.addEventListener('playing', this.updateCb);
+    }
+  }
+
+  setWrapper(wrapper: HTMLElement | undefined) {
+    if(this.wrapper != null) {
+      erd.removeListener(this.wrapper, this.updateCb);
+    }
+
+    this.wrapper = wrapper;
+
+    if(this.wrapper != null) {
+      this.update();
+      erd.listenTo(this.wrapper, this.updateCb);
+    }
+  }
+}
+
+export const useVideoScaler = (options?: Partial<VideoScaleOptions>): [React.RefCallback<HTMLElement>, React.RefCallback<HTMLVideoElement>] => {
+  const scaler = useMemo(() => {
+    return new VideoScaler();
+  }, []);
+
+  const wrapperCb = useCallback((wrapper: HTMLElement) => {
+    scaler.setWrapper(wrapper);
+  }, [scaler]);
+
+  const videoCb = useCallback((video: HTMLVideoElement) => {
+    scaler.setVideo(video);
+  }, [scaler]);
+
+  useEffect(() => {
     return () => {
-      erd.removeListener(wrapper, adjustSize);
-      video.removeEventListener('playing', adjustSize);
+      scaler.stop();
     };
-  }, [wrapper, video, options]);
+  }, [scaler]);
+  
+  return [wrapperCb, videoCb];
 };
