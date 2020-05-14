@@ -35,11 +35,14 @@ export const StartPage: React.SFC = () => {
     }
   }, [joinRoom]);
 
-  return <div className="start_page">
-    <h1>Welcome to UWP - the universal WebRTC Project</h1>
-    <div className="join">
-      <TextField outlined placeholder={roomName} onChange={updateRoom} onKeyDown={onKeyDown} />
-      <Button onClick={joinRoom} outlined><FeatherIcon icon={"play"} /></Button>
+  return <div className="start_wrapper">
+    <div className="start_page">
+      <h1>Welcome to UWP - the universal WebRTC Project</h1>
+      <div className="join">
+        <TextField outlined placeholder={defaultName} value={roomName} onChange={updateRoom} onKeyDown={onKeyDown} />
+        <Button onClick={joinRoom} outlined><FeatherIcon icon={"play"} /></Button>
+      </div>
     </div>
+    <Footer />
   </div>
 }
