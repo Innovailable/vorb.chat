@@ -44,12 +44,13 @@ a, a.visited {
   flex-direction: column;
   align-content: center;
   justify-content: center;
+  width: 35em;
+  max-width: 90vw;
   .join {
+    width: 100%;
     display: flex;
-    width: 30em;
-    max-width: 100%;
     align-self: center;
-    margin-top: 3em;
+    margin-top: 2em;
     > label {
       flex-grow: 1;
     }

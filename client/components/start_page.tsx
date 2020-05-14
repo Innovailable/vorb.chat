@@ -37,7 +37,15 @@ export const StartPage: React.SFC = () => {
 
   return <div className="start_wrapper">
     <div className="start_page">
-      <h1>Welcome to UWP - the universal WebRTC Project</h1>
+      <h1>Welcome to UWP</h1>
+      <p>UWP is ...</p>
+      <ul>
+        <li>a secure video chat platform</li>
+        <li>using peer-to-peer connections and end-to-end encryption</li>
+        <li>designed for around two to four participants (depending on bandwidth)</li>
+        <li>a tech demo that is in active development</li>
+      </ul>
+      <p>If you want to integrate something like this in your project feel free to conact us at <a href="mailto:mail@innovailable.eu">mail@innovailable.eu</a>.</p>
       <div className="join">
         <TextField outlined placeholder={defaultName} value={roomName} onChange={updateRoom} onKeyDown={onKeyDown} />
         <Button onClick={joinRoom} outlined><FeatherIcon icon={"play"} /></Button>
