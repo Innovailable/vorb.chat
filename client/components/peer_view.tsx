@@ -145,6 +145,58 @@ const usePeerName = (peer: LocalPeer | RemotePeer) => {
   return peerName;
 }
 
+const useStreamTrack = (stream: Stream | undefined, type: 'audio' | 'video') => {
+  const [track, setTrack] = useState<MediaStreamTrack>();
+
+  useEffect(() => {
+    if(stream == null) {
+      setTrack(undefined);
+      return;
+    }
+
+    const update = () => {
+      setTrack(stream.getTracks(type)[0]);
+    };
+
+    update();
+    stream.on('tracks_changed', update);
+
+    return () => {
+      stream.off('tracks_changed', update);
+    };
+  }, [stream]);
+
+  return track;
+}
+
+const useStreamTrackActive = (stream: Stream | undefined, type: 'audio' | 'video') => {
+  const [active, setActive] = useState(false);
+  const track = useStreamTrack(stream, type);
+
+  useEffect(() => {
+    if(track == null) {
+      setActive(false);
+      return;
+    }
+
+    const update = () => {
+      console.log('mute is', track.muted);
+      console.log(track);
+      setActive(!track.muted);
+    };
+
+    update();
+    track.addEventListener('mute', update);
+    track.addEventListener('unmute', update);
+
+    return () => {
+      track.removeEventListener('mute', update);
+      track.removeEventListener('unmute', update);
+    };
+  }, [track]);
+
+  return active;
+}
 
 export const VolumeInfo: React.SFC<{ stream?: Stream }> = ({ stream }) => {
   const [muted, toggleMuted] = useStreamMute(stream, "audio");
@@ -274,7 +326,7 @@ export const LocalPeerDisplay: React.SFC<{ peer: LocalPeer }> = ({ peer }) => {
 export const RemotePeerDisplay: React.SFC<{ peer: RemotePeer }> = ({ peer }) => {
   const stream = usePeerStream(peer);
   const screenshare = usePeerStream(peer, 'screenshare');
-  const screenshareActive = useStreamActive(screenshare);
+  const screenshareActive = useStreamTrackActive(screenshare, 'video');
 
   const [scaleWrapperRef, videoRef] = useVideoScaler();
 
