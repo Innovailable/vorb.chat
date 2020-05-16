@@ -338,13 +338,11 @@ a, a.visited {
   height: 100%;
 
   .user_view {
-    width: 100%;
-    height: 100%;
+    width: 100% !important;
+    height: 100% !important;
 
     .user_stream_main {
       object-fit: contain !important;
-      width: 100% !important;
-      height: 100% !important;
     }
   }
 }
