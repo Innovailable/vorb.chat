@@ -49,7 +49,7 @@ const useStreamMute = (stream: Stream | undefined, muteType: "audio" | "video"):
       return;
     }
 
-    stream.mute(!muted, muteType);
+    stream.toggleMute(muteType);
   }, [stream, muted]);
 
   useEffect(() => {
