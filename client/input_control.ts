@@ -391,7 +391,6 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
     // let's have another shot at the device list ...
 
     if(!this.deviceMapHandler.fullyLoaded()) {
-      console.log('loading device map handler again');
       this.deviceMapHandler.load();
     }
 

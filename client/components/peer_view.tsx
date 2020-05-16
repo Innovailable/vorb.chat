@@ -183,8 +183,6 @@ const useStreamTrackActive = (stream: Stream | undefined, type: 'audio' | 'video
     }
 
     const update = () => {
-      console.log('mute is', track.muted);
-      console.log(track);
       setActive(!track.muted);
     };
 

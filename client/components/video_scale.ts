@@ -35,7 +35,6 @@ class VideoScaler {
 
   update() {
     if(this.parent == null || this.wrapper == null) {
-      console.log('not running scaler', this.video, this.wrapper);
       return;
     }
 

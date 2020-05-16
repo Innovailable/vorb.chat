@@ -118,7 +118,6 @@ export const useRoomPeers = () => {
 
   useEffect(() => {
     if(room == null) {
-      console.log("no room, no peers!");
       setPeers({});
       return;
     }

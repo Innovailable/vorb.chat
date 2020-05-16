@@ -19,7 +19,6 @@ export const RoomEntrance: React.SFC = () => {
   const history = useHistory();
 
   const join = useCallback(() => {
-    console.log("connecting by click");
     fill_audio_context_pool();
 
     localStorage.setItem("name", name);
