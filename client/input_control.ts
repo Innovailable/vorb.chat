@@ -100,10 +100,10 @@ export function sanitizeInputConfiguration(config: InputConfiguration, devices?:
   };
 }
 
-async function stopStream(streamPromise: Promise<Stream>) {
+async function stopStream(streamPromise: Promise<Stream | undefined>) {
   try {
     const stream = await streamPromise;
-    stream.stop();
+    stream?.stop();
   } catch {
   }
 }
@@ -111,12 +111,13 @@ async function stopStream(streamPromise: Promise<Stream>) {
 export type TrackKind = 'audio' | 'video';
 
 interface StreamResolverEvents {
+  promiseChanged: Promise<Stream | undefined> | undefined;
   streamChanged: Stream | undefined;
 }
 
 class StreamResolver extends Emittery.Typed<StreamResolverEvents> {
   stream: Stream | undefined;
-  promise: Promise<Stream> | undefined;
+  promise: Promise<Stream | undefined> | undefined;
 
   constructor(stream?: Promise<Stream>) {
     super();
@@ -124,8 +125,9 @@ class StreamResolver extends Emittery.Typed<StreamResolverEvents> {
     this.setPromise(stream);
   }
 
-  setPromise(promise: Promise<Stream> | undefined) {
+  setPromise(promise: Promise<Stream | undefined> | undefined) {
     this.promise = promise;
+    this.emit('promiseChanged', promise);
 
     if(promise == null) {
       this.stream = undefined;
@@ -158,6 +160,7 @@ interface InputControlEvents {
   streamChanged: Stream | undefined;
   screenshareChanged: Stream | undefined;
   configurationChanged: InputConfiguration | undefined;
+  screensharingChanged: boolean;
 }
 
 export class InputControl extends Emittery.Typed<InputControlEvents> {
@@ -178,6 +181,10 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
 
     this.screenshareResolver.on('streamChanged', (stream) => {
       this.emit('screenshareChanged', stream);
+    });
+
+    this.screenshareResolver.on('promiseChanged', () => {
+      this.emit('screensharingChanged', this.isScreensharing());
     });
 
     this.deviceMapHandler.on('devicesChanged', (devices) => {
@@ -250,8 +257,6 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
       return;
     }
 
-    this.appliedConfiguration = config;
-
     if(!config.audio.enabled && !config.video.enabled) {
       this.stopStream();
 
@@ -260,17 +265,25 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
     }
 
     try {
-      const stream = this.createStream(config);
+      const stream = this.createStream(config, );
       this.streamResolver.setPromise(stream);
     } catch(err) {
       console.log('Unable to get user media');
       this.streamResolver.setPromise(undefined);
     }
+
+    this.appliedConfiguration = config;
   }
 
-  setDeviceId(kind: TrackKind, deviceId: string | undefined) {
+  setDeviceId(kind: TrackKind, deviceId: string | undefined, forceEnable = false) {
     const config = produce(this.configuration, (draft) => {
-      draft[kind].deviceId = deviceId;
+      const trackConfig = draft[kind];
+
+      trackConfig.deviceId = deviceId;
+
+      if(forceEnable) {
+        trackConfig.enabled = true;
+      }
     });
 
     this.setConfiguration(config);
@@ -292,28 +305,103 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
     this.setConfiguration(config);
   }
 
-  private async createStream(config: InputConfiguration): Promise<Stream> {
-    const resInfo = resolutions[config.video.resolution];
+  private async createVideoTrack(config: VideoTrackConfiguration): Promise<MediaStreamTrack | undefined> {
+    try {
+      if(!config.enabled) {
+        return;
+      }
 
-    const resData = {
-      width: { ideal: resInfo?.dimensions[0] },
-      height: { ideal: resInfo?.dimensions[1] },
-    };
+      const resInfo = resolutions[config.resolution];
 
-    const constraints: MediaStreamConstraints = {
-      audio: getSourceConstraint(config.audio),
-      video: getSourceConstraint(config.video, resData),
-    };
+      const resData = {
+        width: { ideal: resInfo?.dimensions[0] },
+        height: { ideal: resInfo?.dimensions[1] },
+      };
 
-    await this.stopStream();
+      const constraints: MediaStreamConstraints = {
+        video: getSourceConstraint(config, resData),
+      };
 
-    const stream = await Stream.createStream(constraints);
+      const stream = await Stream.createStream(constraints);
+
+      return stream.getTracks('video')[0];
+    } catch(err) {
+      console.log(err);
+      return;
+    }
+  }
+
+  private async createAudioTrack(config: TrackConfiguration): Promise<MediaStreamTrack | undefined> {
+    try {
+      if(!config.enabled) {
+        return;
+      }
+
+      const constraints: MediaStreamConstraints = {
+        audio: getSourceConstraint(config),
+      };
+
+      const stream = await Stream.createStream(constraints);
+
+      return stream.getTracks('audio')[0];
+    } catch(err) {
+      console.log(err);
+      return;
+    }
+  }
+
+  private async createStream(config: InputConfiguration): Promise<Stream | undefined> {
+    // what changed?
+
+    const audioChanged = !equal(config.audio, this.appliedConfiguration?.audio);
+    const videoChanged = !equal(config.video, this.appliedConfiguration?.video);
+
+    // get old media
+
+    const oldStream = await this.streamResolver.promise;
+
+    const oldAudio = oldStream?.getTracks('audio')[0];
+    const oldVideo = oldStream?.getTracks('video')[0];
+
+    // stop tracks we replace
+
+    if(audioChanged) {
+      oldAudio?.stop();
+    }
+
+    if(videoChanged) {
+      oldVideo?.stop();
+    }
+
+    // get new tracks
+
+    const audioTrack = audioChanged ? await this.createAudioTrack(config.audio) : oldAudio;
+    const videoTrack = videoChanged ? await this.createVideoTrack(config.video) : oldVideo;
+
+    // create stram
+
+    const mediaStream = new MediaStream();
+
+    for(const track of [audioTrack, videoTrack]) {
+      if(track != null) {
+        mediaStream.addTrack(track);
+      }
+    }
+
+    // let's have another shot at the device list ...
 
     if(!this.deviceMapHandler.fullyLoaded()) {
+      console.log('loading device map handler again');
       this.deviceMapHandler.load();
     }
 
-    return stream;
+    // done
+
+    if(audioTrack != null || videoTrack != null) {
+      return new Stream(mediaStream);
+    } else {
+      return;
+    }
   }
 
   async stopStream() {
@@ -346,11 +434,15 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
   }
 
   toggleScreenshare() {
-    if(this.screenshareResolver.promise == null) {
-      return this.startScreenshare();
-    } else {
+    if(this.isScreensharing()) {
       return this.stopScreenshare();
+    } else {
+      return this.startScreenshare();
     }
+  }
+
+  isScreensharing() {
+    return this.screenshareResolver.promise != null;
   }
 
   getScreenshare() {

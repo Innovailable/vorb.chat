@@ -7,6 +7,8 @@ import { Peer, RemotePeer, LocalPeer, Stream, MediaDomElement } from 'rtc-lib';
 import { VolumeProcessor } from '../volume';
 import useMergedRef from '@react-hook/merged-ref'
 
+import { Dialog, DialogTitle, DialogContent, DialogActions, DialogButton } from '@rmwc/dialog';
+import '@rmwc/dialog/styles';
 import { Elevation } from '@rmwc/elevation';
 import '@rmwc/elevation/styles';
 
@@ -16,6 +18,7 @@ import { useAnimationFrameLoop } from './animation';
 import { usePromiseResult } from './helper';
 import { useInputStream, useInputControl } from './rtc_room';
 import { useVideoScaler } from './video_scale';
+import { InputSelection } from './input_selection';
 
 const usePeerStream = (peer: Peer, name?: string) => {
   const [streamPromise, setStreamPromise] = useState<Promise<Stream>>();
@@ -308,6 +311,33 @@ export const ScreenshareButton: React.SFC = () => {
   </Button>
 };
 
+export const InputConfigButton: React.SFC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const open = useCallback(() => {
+    setIsOpen(true);
+  }, []);
+
+  const close = useCallback(() => {
+    setIsOpen(false);
+  }, []);
+
+  return <>
+    <Dialog open={isOpen} onClose={close} renderToPortal={true}>
+      <DialogTitle>Select Devices</DialogTitle>
+      <DialogContent>
+        <InputSelection />
+      </DialogContent>
+      <DialogActions>
+        <DialogButton onClick={close} action="accept" isDefaultAction>Okay</DialogButton>
+      </DialogActions>
+    </Dialog>
+    <Button outlined className="overlay_button" type="button" onClick={open}>
+      <FeatherIcon icon="settings" />
+    </Button>
+  </>;
+};
+
 export const LocalPeerDisplay: React.SFC<{ peer: LocalPeer }> = ({ peer }) => {
   const stream = useInputStream();
   const peerName = usePeerName(peer);
@@ -316,7 +346,7 @@ export const LocalPeerDisplay: React.SFC<{ peer: LocalPeer }> = ({ peer }) => {
     <StreamVideo muted stream={stream} />
     <div className="user_buttons">
       <VolumeInfo stream={stream} />
-      <CamInfo stream={stream} />
+      <InputConfigButton />
       <ScreenshareButton />
       <Button outlined className="overlay_button" type="button">{peerName}</Button>
     </div>

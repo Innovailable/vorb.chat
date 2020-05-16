@@ -43,6 +43,7 @@
   "dependencies": {
     "@msgpack/msgpack": "^1.12.0",
     "@react-hook/merged-ref": "^1.1.1",
+    "@rmwc/base": "^6.0.14",
     "@rmwc/button": "^6.0.1",
     "@rmwc/dialog": "^6.0.3",
     "@rmwc/elevation": "^6.0.3",

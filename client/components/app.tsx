@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Switch, Route, useParams } from 'react-router-
 
 import { ThemeProvider } from '@rmwc/theme';
 import '@rmwc/button/styles';
+import { Portal } from '@rmwc/base';
 
 
 import { RTCSignaling, useSignalingState } from './rtc_signaling';
@@ -52,26 +53,26 @@ export const ConnectionHandler: React.SFC = ({ children }) => {
 export const App: React.SFC = () => {
 
   return <Router>
-  <ThemeProvider
-    options={{
-      primary: 'red',
-      secondary: 'green'
-    }}>
-    <div className="center_wrapper">
-      <RTCSignaling address={SIGNALING_ADDRESS} options={SIGNALING_OPTIONS}>
-        <ConnectionHandler>
-          <Switch>
-            <Route path="/c/:room_name">
-              <RoomRoute />
-            </Route>
-            <Route path="/">
-              <StartPage />
-            </Route>
-          </Switch>
-        </ConnectionHandler>
-      </RTCSignaling>
-    </div>
+    <ThemeProvider
+      options={{
+        primary: 'red',
+        secondary: 'green'
+      }}>
+      <div className="center_wrapper">
+        <RTCSignaling address={SIGNALING_ADDRESS} options={SIGNALING_OPTIONS}>
+          <ConnectionHandler>
+            <Switch>
+              <Route path="/c/:room_name">
+                <RoomRoute />
+              </Route>
+              <Route path="/">
+                <StartPage />
+              </Route>
+            </Switch>
+          </ConnectionHandler>
+        </RTCSignaling>
+      </div>
+      <Portal />
     </ThemeProvider>
-
   </Router>
 }
