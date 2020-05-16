@@ -19,6 +19,7 @@ var erd = elementResizeDetectorMaker({
 
 class VideoScaler {
   updateCb: () => void;
+  parent?: HTMLElement;
   wrapper?: HTMLElement;
   video?: HTMLVideoElement;
 
@@ -27,28 +28,41 @@ class VideoScaler {
   }
 
   stop() {
+    this.setParent(undefined);
     this.setWrapper(undefined);
     this.setVideo(undefined);
   }
 
   update() {
-    if(this.video == null || this.wrapper == null) {
+    if(this.parent == null || this.wrapper == null) {
       console.log('not running scaler', this.video, this.wrapper);
       return;
     }
 
-    const baseWidth = this.video.videoWidth || 320;
-    const baseHeight = this.video.videoHeight || 240;
-    const maxWidth = this.wrapper.clientWidth - 8;
-    const maxHeight = this.wrapper.clientHeight - 8;
+    let baseWidth: number;
+    let baseHeight: number;
+
+    baseWidth = this.video?.videoWidth || 16;
+    baseHeight = this.video?.videoHeight || 9;
+
+    const maxWidth = this.parent.clientWidth - 8;
+    const maxHeight = this.parent.clientHeight - 8;
 
     const ratio = baseWidth / baseHeight;
 
     const calcWidth = Math.min(maxWidth, maxHeight * ratio);
     const calcHeight = Math.min(maxHeight, maxWidth / ratio);
 
-    this.video.style.width = String(Math.floor(calcWidth));
-    this.video.style.height = String(Math.floor(calcHeight));
+    this.wrapper.style.width = String(Math.floor(calcWidth));
+    this.wrapper.style.height = String(Math.floor(calcHeight));
+  }
+
+  setWrapper(wrapper: HTMLElement | undefined) {
+    this.wrapper = wrapper;
+
+    if(this.wrapper != null) {
+      this.update();
+    }
   }
 
   setVideo(video: HTMLVideoElement | undefined) {
@@ -64,24 +78,28 @@ class VideoScaler {
     }
   }
 
-  setWrapper(wrapper: HTMLElement | undefined) {
-    if(this.wrapper != null) {
-      erd.removeListener(this.wrapper, this.updateCb);
+  setParent(parent: HTMLElement | undefined) {
+    if(this.parent != null) {
+      erd.removeListener(this.parent, this.updateCb);
     }
 
-    this.wrapper = wrapper;
+    this.parent = parent;
 
-    if(this.wrapper != null) {
+    if(this.parent != null) {
       this.update();
-      erd.listenTo(this.wrapper, this.updateCb);
+      erd.listenTo(this.parent, this.updateCb);
     }
   }
 }
 
-export const useVideoScaler = (options?: Partial<VideoScaleOptions>): [React.RefCallback<HTMLElement>, React.RefCallback<HTMLVideoElement>] => {
+export const useVideoScaler = (options?: Partial<VideoScaleOptions>): [React.RefCallback<HTMLElement>, React.RefCallback<HTMLElement>, React.RefCallback<HTMLVideoElement>] => {
   const scaler = useMemo(() => {
     return new VideoScaler();
   }, []);
+
+  const parentCb = useCallback((parent: HTMLElement) => {
+    scaler.setParent(parent);
+  }, [scaler]);
 
   const wrapperCb = useCallback((wrapper: HTMLElement) => {
     scaler.setWrapper(wrapper);
@@ -97,5 +115,5 @@ export const useVideoScaler = (options?: Partial<VideoScaleOptions>): [React.Ref
     };
   }, [scaler]);
   
-  return [wrapperCb, videoCb];
+  return [parentCb, wrapperCb, videoCb];
 };

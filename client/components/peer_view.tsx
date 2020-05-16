@@ -205,12 +205,6 @@ export const VolumeInfo: React.SFC<{ stream?: Stream }> = ({ stream }) => {
   const [muted, toggleMuted] = useStreamMute(stream, "audio");
   const volume = useStreamVolume(stream);
 
-  // TODO i am sorry ...
-  //const red = Math.round(255 - Math.min(volume * 600, 255) / 4).toString(16).padStart(2, '0');
-  //const other = Math.round(255 - Math.min(volume * 600, 255)).toString(16).padStart(2, '0');
-
-  const opacity = Math.min(volume * 5, 1.);
-
   let icon: string;
 
   if(muted) {
@@ -272,12 +266,13 @@ export const SecurityInfo: React.SFC<{ peer: RemotePeer }> = ({ peer }) => {
 }
 
 interface StreamVideoProps extends React.HTMLProps<HTMLVideoElement> {
-  stream?: Peer | Stream | Promise<Stream>;
+  stream?: Stream;
 }
 
 export const StreamVideo = React.forwardRef<HTMLVideoElement,StreamVideoProps>(({ stream, ...other }, ref) => {
   const ourRef = useRef<HTMLVideoElement>(null);
   const mergedRef = useMergedRef(ourRef, ref);
+  const videoActive = useStreamTrackActive(stream, 'video');
 
   useEffect(() => {
     if(ourRef.current == null) {
@@ -296,7 +291,16 @@ export const StreamVideo = React.forwardRef<HTMLVideoElement,StreamVideoProps>((
     };
   }, [stream]);
 
-  return <video autoPlay {...other} ref={mergedRef} />
+  const videoStyle: React.CSSProperties = {
+    display: videoActive ? undefined : 'none',
+  };
+
+  const placeholder = videoActive ? null : <FeatherIcon icon="camera-off" className="video_placeholder" />;
+
+  return <>
+    {placeholder}
+    <video autoPlay {...other} ref={mergedRef} style={videoStyle} />
+  </>
 });
 
 export const ScreenshareButton: React.SFC = () => {
@@ -358,7 +362,7 @@ export const RemotePeerDisplay: React.SFC<{ peer: RemotePeer }> = ({ peer }) => 
   const screenshare = usePeerStream(peer, 'screenshare');
   const screenshareActive = useStreamTrackActive(screenshare, 'video');
 
-  const [scaleWrapperRef, videoRef] = useVideoScaler();
+  const [scaleWrapperRef, viewRef, videoRef] = useVideoScaler();
 
   const fullscreenRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useMergedRef(scaleWrapperRef, fullscreenRef);
@@ -383,7 +387,7 @@ export const RemotePeerDisplay: React.SFC<{ peer: RemotePeer }> = ({ peer }) => 
   }
 
   return <div className="user_wrapper" ref={wrapperRef}>
-    <div className="user_view" onDoubleClick={handleFullscreen}>
+    <div className="user_view" ref={viewRef} onDoubleClick={handleFullscreen}>
       {streamView}
       <div className="user_buttons">
         <VolumeInfo stream={stream} />
