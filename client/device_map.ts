@@ -1,14 +1,7 @@
 import * as Emittery from 'emittery';
 
 function filterDevices(devices: MediaDeviceInfo[], kind: MediaDeviceKind) {
-  const ids = new Set<string>();
-
   return devices.filter((device) => {
-    if(ids.has(device.deviceId)) {
-      return false;
-    }
-
-    ids.add(device.deviceId);
     return device.kind === kind
   });
 }
