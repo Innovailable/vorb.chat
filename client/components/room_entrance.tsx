@@ -148,10 +148,17 @@ export const RoomEntrance: React.SFC = () => {
     connect(name);
   }, [name, connect]);
 
+  const onKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
+    if(event.keyCode === 13 && !event.shiftKey) {
+      event.preventDefault();
+      click();
+    }
+  }, [click]);
+
   return <Dialog open={true} preventOutsideDismiss>
     <DialogTitle>Select Devices</DialogTitle>
     <DialogContent>
-      <TextInput label="Name" value={name} update={setName} />
+      <TextInput label="Name" value={name} update={setName} onKeyDown={onKeyDown} />
       <br/>
       <div className="video_preview">
 	<StreamVideo stream={stream} muted />

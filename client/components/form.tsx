@@ -8,20 +8,20 @@ import '@rmwc/textfield/styles';
 
 import classNames from 'classnames';
 
-interface TextAreaProps extends React.HTMLProps<HTMLTextAreaElement> {
+interface TextAreaProps extends TextFieldProps {
   value?: string;
   update: (data: string) => void;
 }
 
 export class TextArea extends React.PureComponent<TextAreaProps> {
-  handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+  handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { update } = this.props;
     update(e.target.value)
   }
 
   render() {
     const { update, ...other } = this.props;
-    return <textarea className="form-control" onChange={this.handleChange.bind(this)} {...other} />;
+    return <TextField textarea outlined fullwidth onChange={this.handleChange.bind(this)} {...other} />
   }
 }
 
@@ -39,7 +39,7 @@ export class TextInput extends React.PureComponent<TextInputProps> {
 
   render() {
     const { update, ...other} = this.props;
-    return <TextField outlined onChange={this.handleChange.bind(this)} {...other} />
+    return <TextField onChange={this.handleChange.bind(this)} {...other} />
   }
 }
 

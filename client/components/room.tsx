@@ -46,14 +46,23 @@ const ChatInput: React.SFC = () => {
   const [message, setMessage] = useState("");
   const send = useChatTextSend();
 
-  const click = useCallback(() => {
+  const sendChat = useCallback(() => {
     send(message);
     setMessage("");
   }, [message, send, setMessage]);
 
+  const onKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
+    if(event.keyCode === 13 && !event.shiftKey) {
+      event.preventDefault();
+      send(message);
+      setMessage("");
+    }
+  }, [message, send]);
+
+
   return <div className="chat_input">
-    <TextInput value={message} update={setMessage} />
-    <Button onClick={click} outlined><FeatherIcon icon="send" /> </Button>
+    <TextInput value={message} update={setMessage} onKeyDown={onKeyDown} />
+    <Button onClick={sendChat} outlined><FeatherIcon icon="send" /> </Button>
   </div>
 }
 

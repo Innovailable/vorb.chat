@@ -1,18 +1,16 @@
 import * as React from 'react';
-import { useState, useCallback } from 'react';
 
-import { BrowserRouter as Router, Switch, Route, useParams, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route, useParams } from 'react-router-dom';
 
-import { FeatherIcon } from './feather';
 
-import { Button } from '@rmwc/button';
-import { TextField } from '@rmwc/textfield';
+
 import { ThemeProvider } from '@rmwc/theme';
 import '@rmwc/button/styles';
 
 
 import { RTCSignaling, useSignalingState } from './rtc_signaling';
 import { Room } from './room';
+import { StartPage } from './start_page';
 
 const SIGNALING_ADDRESS = process.env.UWP_SIGNALING ?? "wss://calling.innovailable.eu";
 
@@ -52,11 +50,6 @@ export const ConnectionHandler: React.SFC = ({ children }) => {
 }
 
 export const App: React.SFC = () => {
-  const [roomName, setRoomName] = useState("NBA");
-
-  const updateRoom = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setRoomName(e.target.value);
-  }, [setRoomName]);
 
   return <Router>
   <ThemeProvider
@@ -72,14 +65,7 @@ export const App: React.SFC = () => {
               <RoomRoute />
             </Route>
             <Route path="/">
-
-                <div className="app">
-                  <h1>Welcome to UWP - the universal WebRTC Project</h1>
-                  <div className="join">
-                    <TextField outlined placeholder={roomName} onChange={updateRoom} />
-                    <Link to={"/c/" + roomName}><Button outlined><FeatherIcon icon={"play"} /></Button></Link>
-                  </div>
-                </div>
+              <StartPage />
             </Route>
           </Switch>
         </ConnectionHandler>
