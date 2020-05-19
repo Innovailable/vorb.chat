@@ -47,7 +47,7 @@ export const StartPage: React.SFC = () => {
       </ul>
       <p>If you want to integrate something like this in your project feel free to conact us at <a href="mailto:mail@innovailable.eu">mail@innovailable.eu</a>.</p>
       <div className="join">
-        <TextField outlined placeholder={defaultName} value={roomName} onChange={updateRoom} onKeyDown={onKeyDown} />
+        <TextField autoFocus outlined placeholder={defaultName} value={roomName} onChange={updateRoom} onKeyDown={onKeyDown} />
         <Button onClick={joinRoom} outlined><FeatherIcon icon={"play"} /></Button>
       </div>
     </div>
