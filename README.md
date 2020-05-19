@@ -1,4 +1,4 @@
-# UWP
+# vorb.chat
 
 This is a WebRTC based video chat platform. It is using peer to peer
 connections and end to end encryption. It supports two to around four
