@@ -13,10 +13,10 @@ import { RTCSignaling, useSignalingState } from './rtc_signaling';
 import { Room } from './room';
 import { StartPage } from './start_page';
 
-const SIGNALING_ADDRESS = process.env.UWP_SIGNALING ?? "wss://calling.innovailable.eu";
+const SIGNALING_ADDRESS = process.env.SIGNALING_URI ?? "wss://calling.innovailable.eu";
 
 const SIGNALING_OPTIONS = {
-  stun: process.env.UWP_STUN ?? "stun:innovailable.eu",
+  stun: process.env.STUN_URI ?? "stun:innovailable.eu",
 };
 
 const RoomRoute: React.SFC<{}> = () => {

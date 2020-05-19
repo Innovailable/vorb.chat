@@ -110,7 +110,7 @@ export const Room: React.SFC<RoomProps> = (props) => {
     <div className="container">
       <div className="header">
         <h2>{room_name}</h2>
-        <Link to="/"><h2>UWP - Home</h2></Link>
+        <Link to="/"><h2>vorb.chat - Home</h2></Link>
       </div>
       <div className="content">
         <UserList />

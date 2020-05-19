@@ -1,9 +1,9 @@
 {
-  "name": "uwp-2",
+  "name": "vorb.chat",
   "version": "0.2.0",
-  "description": "Universal WebRTC Project",
+  "description": "WebRTC based peer to peer video conferences",
   "private": true,
-  "main": "src/index.ts",
+  "main": "client/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
