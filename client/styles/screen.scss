@@ -1,3 +1,5 @@
+$textcolor: rgba(0,0,0,0.6);
+
 body {
   margin: 0px;
 }
@@ -80,6 +82,11 @@ a, a.visited {
   border: solid 1px black;
 }
 
+.key_value {
+  margin-top: 0.5em;
+  width: 100%;
+}
+
 .user_buttons {
   position: absolute;
   display: flex;
@@ -88,11 +95,6 @@ a, a.visited {
   left: 0;
   bottom: 0;
 
-  .key_wrapper {
-    display: flex;
-    flex-direction: row;
-    position: relative;
-  }
   .username_stream {
     margin-left: 0.5em;
     color: white;
@@ -276,24 +278,9 @@ video.mirror {
 	}
 }
 
-
-.key_info {
-	span {
-		display: inline-block;
-		min-width: 4em;
-	}
-
-	input {
-		min-width: 20em;
-	}
-  margin-left: 0.5em;
-  display: inline-block;
-	margin-top: 0.2em;
-	background-color: rgba(200, 200, 200, 0.8);
-	border: 1px solid #555;
-}
-
 .footer {
+  color: $textcolor;
+
   .links {
     text-align: center;
   }
@@ -358,5 +345,6 @@ video.mirror {
 }
 
 .room_instruction {
+  color: $textcolor;
   margin-top: 5em;
 }

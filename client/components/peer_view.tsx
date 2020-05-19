@@ -11,6 +11,8 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, DialogButton } from 
 import '@rmwc/dialog/styles';
 import { Elevation } from '@rmwc/elevation';
 import '@rmwc/elevation/styles';
+import { TextField } from '@rmwc/textfield';
+import '@rmwc/textfield/styles';
 
 import { FeatherIcon } from './feather';
 import { SimpleButton } from './form';
@@ -19,6 +21,8 @@ import { usePromiseResult } from './helper';
 import { useInputStream, useInputControl, useIsScreensharing, useInputScreenshare } from './rtc_room';
 import { useVideoScaler } from './video_scale';
 import { InputSelection } from './input_selection';
+
+const securityText = require('./encryption_text.md');
 
 const usePeerStream = (peer: Peer, name?: string) => {
   const [streamPromise, setStreamPromise] = useState<Promise<Stream>>();
@@ -223,36 +227,34 @@ export const VolumeInfo: React.SFC<{ stream?: Stream }> = ({ stream }) => {
 }
 
 export const SecurityInfo: React.SFC<{ peer: RemotePeer }> = ({ peer }) => {
-  const [showing, setShowing] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const fingerprints = peer.currentFingerprints();
 
-  const toggleShow = useCallback(() => {
-    setShowing(!showing);
-  }, [showing, setShowing]);
+  const open = useCallback(() => {
+    setIsOpen(true);
+  }, []);
 
-  let display: React.ReactNode = null;
+  const close = useCallback(() => {
+    setIsOpen(false);
+  }, []);
 
-  if(showing) {
-    // TODO state management
-    const fingerprints = peer.currentFingerprints();
-
-    display = <div className="key_info">
-      <div>
-        <span>Local:</span>
-        <input value={fingerprints.local?.hash ?? ""} readOnly />
-      </div>
-      <div>
-        <span>Remote:</span>
-        <input value={fingerprints.remote?.hash ?? ""} readOnly />
-      </div>
-    </div>
-  }
-
-  return <div className="key_wrapper">
-    <Button outlined onClick={toggleShow} className="user_input_btn overlay_button">
+  return <>
+    <Button outlined onClick={open} className="user_input_btn overlay_button">
       <FeatherIcon icon="key" />
     </Button>
-    {display}
-  </div>;
+    <Dialog open={isOpen} onClose={close} renderToPortal={true}>
+      <DialogTitle>Secure connection</DialogTitle>
+      <DialogContent>
+        <div className="key_info" dangerouslySetInnerHTML={{__html: securityText }} />
+        Encryption key hash values:
+        <TextField className="key_value" label="Local fingerprint" filled value={fingerprints.local?.hash ?? ""} readOnly />
+        <TextField className="key_value" label="Remote fingerprint" filled value={fingerprints.remote?.hash ?? ""} readOnly />
+      </DialogContent>
+      <DialogActions>
+        <DialogButton onClick={close} action="accept" isDefaultAction>Okay</DialogButton>
+      </DialogActions>
+    </Dialog>
+  </>;
 }
 
 interface StreamVideoProps extends React.HTMLProps<HTMLVideoElement> {
@@ -386,17 +388,17 @@ export const RemotePeerDisplay: React.SFC<{ peer: RemotePeer }> = ({ peer }) => 
 
   if(screenshareActive) {
     streamView = <>
-      <StreamVideo className="user_stream_main" stream={screenshare} ref={videoRef} />
+      <StreamVideo className="user_stream_main" stream={screenshare} ref={videoRef} onDoubleClick={handleFullscreen} />
       <Elevation z={5} className="user_stream_pip">
-        <StreamVideo stream={stream} />
+        <StreamVideo stream={stream} onDoubleClick={handleFullscreen} />
       </Elevation>
     </>
   } else {
-    streamView = <StreamVideo className="user_stream_main" stream={stream} ref={videoRef} />;
+    streamView = <StreamVideo className="user_stream_main" stream={stream} ref={videoRef} onDoubleClick={handleFullscreen} />;
   }
 
   return <div className="user_wrapper" ref={wrapperRef}>
-    <div className="user_view" ref={viewRef} onDoubleClick={handleFullscreen}>
+    <div className="user_view" ref={viewRef}>
       {streamView}
       <div className="user_buttons">
         <VolumeInfo stream={stream} />
