@@ -240,15 +240,15 @@ export const SecurityInfo: React.SFC<{ peer: RemotePeer }> = ({ peer }) => {
 
   return <>
     <Button outlined onClick={open} className="user_input_btn overlay_button">
-      <FeatherIcon icon="key" />
+      <FeatherIcon icon="lock" />
     </Button>
     <Dialog open={isOpen} onClose={close} renderToPortal={true}>
       <DialogTitle>Secure connection</DialogTitle>
       <DialogContent>
         <div className="key_info" dangerouslySetInnerHTML={{__html: securityText }} />
         Encryption key hash values:
-        <TextField className="key_value" label="Local fingerprint" filled value={fingerprints.local?.hash ?? ""} readOnly />
-        <TextField className="key_value" label="Remote fingerprint" filled value={fingerprints.remote?.hash ?? ""} readOnly />
+        <TextField className="key_value" label="Local fingerprint" variant="filled" value={fingerprints.local?.hash ?? ""} readOnly />
+        <TextField className="key_value" label="Remote fingerprint" variant="filled" value={fingerprints.remote?.hash ?? ""} readOnly />
       </DialogContent>
       <DialogActions>
         <DialogButton onClick={close} action="accept" isDefaultAction>Okay</DialogButton>
