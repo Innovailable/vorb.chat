@@ -372,17 +372,17 @@ export const RemotePeerDisplay: React.SFC<{ peer: RemotePeer }> = ({ peer }) => 
 
   if(screenshareActive) {
     streamView = <>
-      <StreamVideo className="user_stream_main" stream={screenshare} ref={videoRef} />
+      <StreamVideo className="user_stream_main" stream={screenshare} ref={videoRef} onDoubleClick={handleFullscreen} />
       <Elevation z={5} className="user_stream_pip">
-        <StreamVideo stream={stream} />
+        <StreamVideo stream={stream} onDoubleClick={handleFullscreen} />
       </Elevation>
     </>
   } else {
-    streamView = <StreamVideo className="user_stream_main" stream={stream} ref={videoRef} />;
+    streamView = <StreamVideo className="user_stream_main" stream={stream} ref={videoRef} onDoubleClick={handleFullscreen} />;
   }
 
   return <div className="user_wrapper" ref={wrapperRef}>
-    <div className="user_view" ref={viewRef} onDoubleClick={handleFullscreen}>
+    <div className="user_view" ref={viewRef}>
       {streamView}
       <div className="user_buttons">
         <VolumeInfo stream={stream} />
