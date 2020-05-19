@@ -79,7 +79,10 @@ const DeviceSelect: React.SFC<DeviceSelectProps> = ({ kind, disabled, ...other }
     placeholder = `No ${deviceName.toLowerCase()} found`;
   }
 
-  return <Select label={deviceName} placeholder={placeholder} {...other} disabled={disabled} value={deviceId} onChange={onChange}>
+  // TODO bad hack around rmwc bug, remove
+  const key = devices != null ? devices[devices.length-1]?.label : undefined;
+
+  return <Select key={key} label={deviceName} placeholder={placeholder} {...other} disabled={disabled} value={deviceId} onChange={onChange}>
     {options}
   </Select>
 }
