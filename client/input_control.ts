@@ -420,7 +420,7 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
 
     // TODO remove once fixed in typescript
     // @ts-ignore
-    const screenshare: Promise<Stream> = navigator.mediaDevices.getDisplayMedia().then((ms) => new Stream(ms));
+    const screenshare: Promise<Stream> = navigator.mediaDevices.getDisplayMedia({video: true}).then((ms) => new Stream(ms));
     this.screenshareResolver.setPromise(screenshare);
   }
 
@@ -461,5 +461,3 @@ export class InputControl extends Emittery.Typed<InputControlEvents> {
     return this.deviceMapHandler.getDevices();
   }
 }
-
-
