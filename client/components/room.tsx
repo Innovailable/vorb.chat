@@ -13,7 +13,7 @@ import { SimpleDialog } from '@rmwc/dialog';
 import { Button } from '@rmwc/button';
 import '@rmwc/dialog/styles';
 
-import { RTCRoom, useRoom, useRoomState, useRoomPeers, useChatTextSend,  } from './rtc_room';
+import { RTCRoom, useRoom, useRoomState, useRoomPeers, useChatTextSend, useRoomName } from './rtc_room';
 import { LocalPeerDisplay, RemotePeerDisplay } from './peer_view';
 import { MessageList } from './message_list';
 import { RoomEntrance } from './room_entrance';
@@ -30,6 +30,29 @@ const SelfContainer: React.SFC = () => {
   </div>
 }
 
+const Instruction: React.SFC = () => {
+  const name = useRoomName();
+  const url = "https://uwp.innovailable.eu/c/" + name;
+
+  const shareLink = useCallback((e) => {
+    e.preventDefault();
+    navigator.clipboard.writeText(url);
+  }, [url]);
+
+  return <div className="room_instruction">
+      <h1>The room is empty.</h1>
+      Share the <a href={url} onClick={shareLink}>link</a> to invite others
+      <br/>
+      You can reconfigure what ressources you want to share once you granted permission
+      <br/>
+      Mute yourself by clicking the speaker button
+      <br/>
+      Share your screen
+      <br/>
+      For feedback contact us at <a href="mailto:mail@innovailable.eu">mail@innovailable.eu</a>
+  </div>
+}
+
 const UserList: React.SFC = () => {
   const peers = useRoomPeers();
 
@@ -39,9 +62,17 @@ const UserList: React.SFC = () => {
     </React.Fragment>
   });
 
+  let placeholder;
+
+  if(peer_views.length == 0) {
+    placeholder = <Instruction />;
+  }
+
+
   const className = classNames('stage', `stage_${peer_views.length}`);
 
   return <div className={className}>
+    {placeholder}
     {peer_views}
   </div>;
 };

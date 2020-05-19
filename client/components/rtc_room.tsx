@@ -14,13 +14,16 @@ interface RoomContextState {
   input?: InputControl;
   room?: CallingRoom;
   chat?: Chat;
+  name?: string;
 }
 
 const RoomContext = createContext<RoomContextState>({});
 
 export const useRoom = () => useContext(RoomContext).room;
+export const useRoomName = () => useContext(RoomContext).name;
 export const useChat = () => useContext(RoomContext).chat;
 export const useInputControl = () => useContext(RoomContext).input;
+
 
 export const useRoomConnect = () => {
   const room = useRoom();
@@ -78,7 +81,7 @@ export const RTCRoom: React.SFC<RTCRoomProps> = ({ name, children }) => {
     const room = calling.room(name);
     const chat = new Chat(room);
     const input = new InputControl();
-    setContext({ room, chat, input });
+    setContext({ room, chat, input, name });
 
     room.local.addDataChannel('chat', {ordered: true});
 

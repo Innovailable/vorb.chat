@@ -313,6 +313,11 @@ a, a.visited {
   grid-template-columns: repeat(3, 1fr);
 }
 
+.stage_0 {
+  display: flex !important;
+  justify-content: center;
+}
+
 .stage_1 {
   grid-template-columns: repeat(1, 1fr);
 }
@@ -347,3 +352,6 @@ a, a.visited {
   }
 }
 
+.room_instruction {
+  margin-top: 5em;
+}
