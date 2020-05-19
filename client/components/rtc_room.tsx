@@ -277,6 +277,27 @@ export const useInputStream = () => {
   return stream;
 };
 
+export const useInputScreenshare = () => {
+  const [screenshare, setScreenshare] = useState<Stream | undefined>();
+  const input = useInputControl();
+
+  useEffect(() => {
+    if(input == null) {
+      setScreenshare(undefined);
+      return;
+    }
+
+    setScreenshare(input.getScreenshare());
+    input.on('screenshareChanged', setScreenshare);
+
+    return () => {
+      input.off('screenshareChanged', setScreenshare);
+    };
+  }, [input]);
+
+  return screenshare;
+};
+
 export const useIsScreensharing = () => {
   const [screensharing, setScreensharing] = useState<boolean>(false);
   const input = useInputControl();
