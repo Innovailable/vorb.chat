@@ -1,3 +1,5 @@
+$textcolor: rgba(0,0,0,0.6);
+
 body {
   margin: 0px;
 }
@@ -105,7 +107,6 @@ a, a.visited {
 		transform: scaleX(-1);
 	}
 }
-
 
 .container {
   height: 100vh;
@@ -272,6 +273,8 @@ a, a.visited {
 }
 
 .footer {
+  color: $textcolor;
+
   .links {
     text-align: center;
   }
@@ -336,5 +339,6 @@ a, a.visited {
 }
 
 .room_instruction {
+  color: $textcolor;
   margin-top: 5em;
 }

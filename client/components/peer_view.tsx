@@ -247,8 +247,8 @@ export const SecurityInfo: React.SFC<{ peer: RemotePeer }> = ({ peer }) => {
       <DialogContent>
         <div className="key_info" dangerouslySetInnerHTML={{__html: securityText }} />
         Encryption key hash values:
-        <TextField className="key_value" label="Local key" filled value={fingerprints.local?.hash ?? ""} readOnly />
-        <TextField className="key_value" label="Remote key" filled value={fingerprints.remote?.hash ?? ""} readOnly />
+        <TextField className="key_value" label="Local fingerprint" filled value={fingerprints.local?.hash ?? ""} readOnly />
+        <TextField className="key_value" label="Remote fingerprint" filled value={fingerprints.remote?.hash ?? ""} readOnly />
       </DialogContent>
       <DialogActions>
         <DialogButton onClick={close} action="accept" isDefaultAction>Okay</DialogButton>
