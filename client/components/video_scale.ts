@@ -22,15 +22,20 @@ class VideoScaler {
   parent?: HTMLElement;
   wrapper?: HTMLElement;
   video?: HTMLVideoElement;
+  intervalId: ReturnType<typeof setInterval>;
 
   constructor() {
     this.updateCb = this.update.bind(this);
+
+    // TODO remove once we figure out how to detect changes in video resolution
+    this.intervalId = setInterval(this.updateCb, 1000);
   }
 
   stop() {
     this.setParent(undefined);
     this.setWrapper(undefined);
     this.setVideo(undefined);
+    clearInterval(this.intervalId);
   }
 
   update() {
