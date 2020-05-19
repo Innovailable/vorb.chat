@@ -274,3 +274,23 @@ export const useInputStream = () => {
   return stream;
 };
 
+export const useIsScreensharing = () => {
+  const [screensharing, setScreensharing] = useState<boolean>(false);
+  const input = useInputControl();
+
+  useEffect(() => {
+    if(input == null) {
+      setScreensharing(false);
+      return;
+    }
+
+    setScreensharing(input.isScreensharing());
+    input.on('screensharingChanged', setScreensharing);
+
+    return () => {
+      input.off('screensharingChanged', setScreensharing);
+    };
+  }, [input]);
+
+  return screensharing;
+};

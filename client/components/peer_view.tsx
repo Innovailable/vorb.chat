@@ -16,7 +16,7 @@ import { FeatherIcon } from './feather';
 import { SimpleButton } from './form';
 import { useAnimationFrameLoop } from './animation';
 import { usePromiseResult } from './helper';
-import { useInputStream, useInputControl } from './rtc_room';
+import { useInputStream, useInputControl, useIsScreensharing } from './rtc_room';
 import { useVideoScaler } from './video_scale';
 import { InputSelection } from './input_selection';
 
@@ -222,14 +222,6 @@ export const VolumeInfo: React.SFC<{ stream?: Stream }> = ({ stream }) => {
   </Button>;
 }
 
-export const CamInfo: React.SFC<{ stream?: Stream }> = ({ stream }) => {
-  const [muted, toggleMuted] = useStreamMute(stream, "video");
-
-  return <Button outlined onClick={toggleMuted} className="user_input_btn overlay_button">
-    <FeatherIcon icon={muted ? "video-off" : "video"} />
-  </Button>;
-}
-
 export const SecurityInfo: React.SFC<{ peer: RemotePeer }> = ({ peer }) => {
   const [showing, setShowing] = useState(false);
 
@@ -303,13 +295,16 @@ export const StreamVideo = React.forwardRef<HTMLVideoElement,StreamVideoProps>((
 
 export const ScreenshareButton: React.SFC = () => {
   const input = useInputControl();
+  const isScreensharing = useIsScreensharing();
 
   const toggle = useCallback(() => {
     input?.toggleScreenshare();
   }, [input]);
 
+  const icon = isScreensharing ? 'x' : 'monitor';
+
   return <Button outlined className="overlay_button" onClick={toggle} >
-      <FeatherIcon icon="share" />
+      <FeatherIcon icon={icon} />
   </Button>
 };
 
