@@ -86,7 +86,7 @@ a, a.visited {
   flex-direction: row;
   align-items: center;
   left: 0;
-  top: 0;
+  bottom: 0;
 
   .key_wrapper {
     display: flex;
@@ -100,12 +100,10 @@ a, a.visited {
   }
 }
 
-.user_self {
-	video {
-		transform: scaleX(-1);
-	}
-}
 
+video.mirror {
+  transform: scaleX(-1);
+}
 
 .container {
   height: 100vh;
@@ -190,6 +188,13 @@ a, a.visited {
           width: 100%;
           video {
             width: 100%;
+          }
+          .user_stream_pip {
+            opacity: 80%;
+            position: absolute;
+            right: 5%;
+            top: 5%;
+            width: 20%;
           }
         }
       }

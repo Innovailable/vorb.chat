@@ -16,7 +16,7 @@ import { FeatherIcon } from './feather';
 import { SimpleButton } from './form';
 import { useAnimationFrameLoop } from './animation';
 import { usePromiseResult } from './helper';
-import { useInputStream, useInputControl, useIsScreensharing } from './rtc_room';
+import { useInputStream, useInputControl, useIsScreensharing, useInputScreenshare } from './rtc_room';
 import { useVideoScaler } from './video_scale';
 import { InputSelection } from './input_selection';
 
@@ -337,10 +337,26 @@ export const InputConfigButton: React.SFC = () => {
 
 export const LocalPeerDisplay: React.SFC<{ peer: LocalPeer }> = ({ peer }) => {
   const stream = useInputStream();
+  const screenShare  = useInputScreenshare();
   const peerName = usePeerName(peer);
 
+  const videoRef = useVideoScaler();
+
+  let streamView: React.ReactNode;
+
+  if(screenShare) {
+    streamView = <>
+      <StreamVideo className="user_stream_main" stream={screenShare} />
+      <Elevation z={5} className="user_stream_pip">
+        <StreamVideo className="mirror" muted stream={stream} />
+      </Elevation>
+    </>
+  } else {
+    streamView = <StreamVideo className="mirror" muted stream={stream} />;
+  }
+
   return <div className="user_view user_self">
-    <StreamVideo muted stream={stream} />
+    {streamView}
     <div className="user_buttons">
       <VolumeInfo stream={stream} />
       <InputConfigButton />
