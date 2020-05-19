@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@gitlab.com/innovailable/uwp-2.git"
+    "url": "git+ssh://git@github.com:Innovailable/vorb.chat.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": "AGPL",
   "bugs": {
-    "url": "https://gitlab.com/innovailable/uwp-2/issues"
+    "url": "https://github.com/Innovailable/vorb.chat/issues"
   },
-  "homepage": "https://gitlab.com/innovailable/uwp-2#README",
+  "homepage": "https://github.com/Innovailable/vorb.chat",
   "devDependencies": {
     "@babel/cli": "^7.8.4",
     "@babel/core": "^7.9.0",
