@@ -80,6 +80,11 @@ a, a.visited {
   border: solid 1px black;
 }
 
+.key_value {
+  margin-top: 0.5em;
+  width: 100%;
+}
+
 .user_buttons {
   position: absolute;
   display: flex;
@@ -88,11 +93,6 @@ a, a.visited {
   left: 0;
   top: 0;
 
-  .key_wrapper {
-    display: flex;
-    flex-direction: row;
-    position: relative;
-  }
   .username_stream {
     margin-left: 0.5em;
     color: white;
@@ -269,23 +269,6 @@ a, a.visited {
 		height: 100%;
 		transform: scaleX(-1);
 	}
-}
-
-
-.key_info {
-	span {
-		display: inline-block;
-		min-width: 4em;
-	}
-
-	input {
-		min-width: 20em;
-	}
-  margin-left: 0.5em;
-  display: inline-block;
-	margin-top: 0.2em;
-	background-color: rgba(200, 200, 200, 0.8);
-	border: 1px solid #555;
 }
 
 .footer {
