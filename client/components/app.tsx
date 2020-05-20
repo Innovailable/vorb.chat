@@ -17,6 +17,7 @@ const SIGNALING_ADDRESS = process.env.SIGNALING_URI ?? "wss://calling.innovailab
 
 const SIGNALING_OPTIONS = {
   stun: process.env.STUN_URI ?? "stun:innovailable.eu",
+  turn: process.env.TURN_CONFIG != null ? JSON.parse(process.env.TURN_CONFIG) : undefined,
 };
 
 const RoomRoute: React.SFC<{}> = () => {
