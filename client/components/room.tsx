@@ -40,7 +40,7 @@ const Instruction: React.SFC = () => {
   }, [url]);
 
   return <div className="room_instruction">
-      <h1>The room is empty.</h1>
+      <h2>The room is empty.</h2>
       Share the <a href={url} onClick={shareLink}>link</a> to invite others
       <br/>
       You can reconfigure what ressources you want to share once you granted permission
@@ -140,8 +140,8 @@ export const Room: React.SFC<RoomProps> = (props) => {
     <RoomStateDialogs />
     <div className="container">
       <div className="header">
-        <h2>{room_name}</h2>
-        <Link to="/"><h2>vorb.chat - Home</h2></Link>
+        <h1>{room_name}</h1>
+        <Link to="/"><h2>vorb.chat</h2></Link>
       </div>
       <div className="content">
         <UserList />

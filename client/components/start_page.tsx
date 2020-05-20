@@ -37,7 +37,7 @@ export const StartPage: React.SFC = () => {
 
   return <div className="start_wrapper">
     <div className="start_page">
-      <h1>Welcome to vorb.chat</h1>
+      <h1>Welcome to <i>vorb.chat</i></h1>
       <p>vorb.chat is ...</p>
       <ul>
         <li>a secure video chat platform</li>
