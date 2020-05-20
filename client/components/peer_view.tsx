@@ -359,11 +359,13 @@ export const LocalPeerDisplay: React.SFC<{ peer: LocalPeer }> = ({ peer }) => {
 
   return <div className="user_view user_self">
     {streamView}
+    <div className="user_name_overlay">
+      <span>{peerName}</span>
+    </div>
     <div className="user_buttons">
       <VolumeInfo stream={stream} />
       <InputConfigButton />
       <ScreenshareButton />
-      <Button outlined className="overlay_button" type="button">{peerName}</Button>
     </div>
   </div>;
 }
@@ -400,10 +402,12 @@ export const RemotePeerDisplay: React.SFC<{ peer: RemotePeer }> = ({ peer }) => 
   return <div className="user_wrapper" ref={wrapperRef}>
     <div className="user_view" ref={viewRef}>
       {streamView}
+      <div className="user_name_overlay">
+        <span>{peerName}</span>
+      </div>
       <div className="user_buttons">
         <VolumeInfo stream={stream} />
         <SecurityInfo peer={peer} />
-        <Button outlined className="overlay_button" type="button">{peerName}</Button>
       </div>
     </div>
   </div>;

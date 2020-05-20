@@ -87,6 +87,13 @@ a, a.visited {
   width: 100%;
 }
 
+.overlay_button {
+  margin-left: 0.2em;
+  margin-bottom: 0.2em;
+  background-color: rgba(0, 0, 0, .4) !important;
+  color: lightgrey !important;
+}
+
 .user_buttons {
   position: absolute;
   display: flex;
@@ -100,6 +107,19 @@ a, a.visited {
     color: white;
     background-color: rgba(0, 0, 0, .2);
   }
+}
+
+.user_name_overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin-left: 0.2em;
+  margin-top: 0.2em;
+  padding: 0.5em;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, .4) !important;
+  color: lightgrey !important;
 }
 
 
@@ -292,13 +312,6 @@ video.mirror {
   }
 
   margin-bottom: 0.3em;
-}
-
-.overlay_button {
-  margin-left: 0.2em;
-  margin-top: 0.2em;
-  background-color: rgba(0, 0, 0, .4) !important;
-  color: lightgrey !important;
 }
 
 .stage {
