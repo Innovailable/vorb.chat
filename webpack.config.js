@@ -86,8 +86,8 @@ module.exports = (env="production") => {
         },
         plugins: [
             new webpack.EnvironmentPlugin([
-                'UWP_SIGNALING',
-                'UWP_STUN',
+                'SIGNALING_URI',
+                'STUN_URI',
                 'TURN_CONFIG',
             ]),
         ],
