@@ -13,7 +13,16 @@ import { RTCSignaling, useSignalingState } from './rtc_signaling';
 import { Room } from './room';
 import { StartPage } from './start_page';
 
-const SIGNALING_ADDRESS = process.env.SIGNALING_URI ?? "wss://calling.innovailable.eu";
+function sanitizeWsUri(input: string) {
+  if(input.match(/wss?:\/\//) != null) {
+    return input;
+  }
+
+  const protocol = location.protocol === 'https' ? 'wss' : 'ws';
+  return `${protocol}://${location.host}/${input}`;
+}
+
+const SIGNALING_ADDRESS = sanitizeWsUri(process.env.SIGNALING_URI ?? "wss://calling.innovailable.eu");
 
 const SIGNALING_OPTIONS = {
   stun: process.env.STUN_URI ?? "stun:innovailable.eu",
