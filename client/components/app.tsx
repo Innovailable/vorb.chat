@@ -18,7 +18,7 @@ function sanitizeWsUri(input: string) {
     return input;
   }
 
-  const protocol = location.protocol === 'https' ? 'wss' : 'ws';
+  const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
   return `${protocol}://${location.host}/${input}`;
 }
 
