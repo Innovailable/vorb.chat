@@ -229,9 +229,8 @@ video.mirror {
         }
       }
       .message_list {
-        height: 0;
         overflow-y: scroll;
-        min-height: 5em;
+        height: 5em;
         margin-top: 1em;
         margin-bottom: 1em;
         flex-grow: 1;
