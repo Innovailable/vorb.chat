@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import { useChatMessages } from './rtc_room';
 import { Message, IncomingMessage, OutgoingMessage, StatusMessage } from '../chat';
+import { useKeepScrolledDown } from './auto_scroll';
 
 
 const OutgoingMessageComponent: React.SFC<{ message: OutgoingMessage }> = ({ message }) => {
@@ -53,6 +54,7 @@ const MessageComponent: React.SFC<{ message: Message }> = ({ message }) => {
 
 export const MessageList: React.SFC = () => {
   const messages = useChatMessages();
+  const [containerRef, endRef] = useKeepScrolledDown(messages);
 
   const message_views = messages.map((msg, index) => {
     return <div key={index} className="message_wrapper">
@@ -60,7 +62,8 @@ export const MessageList: React.SFC = () => {
     </div>
   });
 
-  return <div className="message_list">
+  return <div ref={containerRef} className="message_list">
     {message_views}
+    <div ref={endRef} />
   </div>;
 }
