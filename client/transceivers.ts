@@ -7,14 +7,12 @@ interface StreamTrackerEvents {
 }
 
 export class StreamTransceiverTracker extends Emittery.Typed<StreamTrackerEvents> {
-  name: string;
   tracks: Set<TrackKind>;
   stream: Stream | undefined;
 
   constructor(stream: Stream | undefined, tracks: Set<TrackKind> = new Set(['audio', 'video'])) {
     super();
 
-    this.name = name;
     this.tracks = tracks;
 
     this.setStream(stream);
