@@ -9,9 +9,10 @@ participants in a conversation (based on bandwidth).
 A server module for more concurrent participants in a conversation might be
 added later.
 
-The project is based on [rtc-lib](https://github.com/Innovailable/rtc-lib). If
-you would like to integrate something like this into your project feel free to
-contact us at mail@innovailable.eu.
+The project is based on [rtc-lib](https://github.com/Innovailable/rtc-lib) and
+uses [calling-signaling](https://github.com/Innovailable/calling-signaling) as
+signaling server. If you would like to integrate something like this into your
+project feel free to contact us at mail@innovailable.eu.
 
 ## Usage
 
