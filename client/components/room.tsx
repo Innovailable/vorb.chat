@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 import * as classNames from 'classnames';
 
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 import { TextInput, TextArea, SimpleButton } from './form';
 
@@ -31,8 +31,11 @@ const SelfContainer: React.SFC = () => {
 }
 
 const Instruction: React.SFC = () => {
-  const name = useRoomName();
-  const url = "https://uwp.innovailable.eu/c/" + name;
+  const routerLocation = useLocation();
+
+  const url = useMemo(() => {
+    return window.location.toString();
+  }, [routerLocation]);
 
   const shareLink = useCallback((e) => {
     e.preventDefault();
